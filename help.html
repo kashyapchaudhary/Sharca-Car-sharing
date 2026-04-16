@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharca - Help</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h2>Sharca</h2>
+        <div class="nav-links">
+            <a href="home.html">Search</a>
+            <a href="trips.html">My Trips</a>
+            <a href="profile.html">Profile</a>
+            <a href="help.html">Help</a>
+            <a href="index.html" onclick="logoutUser(event)">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 style="color: #2c3e50;">Help & Support</h2>
+        <div class="content-card">
+            <h3 style="color: #3498db;">Frequently Asked Questions</h3>
+            <p><strong>How do I book a ride?</strong><br>Go to the Search page, enter your departure and destination, and click Search Ride.</p>
+            <p><strong>How do I become a driver?</strong><br>Log out, and select the 'Driver' tab on the login screen to create a driver account.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #dfe6e9; margin: 20px 0;">
+            
+            <h3 style="color: #3498db;">Contact Us</h3>
+            <p>Email: support@sharca.in</p>
+            <p>Phone: +91 1800-SHARCA-APP</p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharca - Profile Settings</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h2>Sharca</h2>
+        <div class="nav-links">
+            <a href="home.html">Search</a>
+            <a href="trips.html">My Trips</a>
+            <a href="profile.html">Profile</a>
+            <a href="help.html">Help</a>
+            <a href="index.html" onclick="logoutUser(event)">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 style="color: #2c3e50;">Profile Settings</h2>
+        
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+            
+            <div class="content-card" style="flex: 1; min-width: 250px; text-align: center;">
+                <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #3498db, #2ecc71); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 3em; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <span id="avatar-initial">R</span>
+                </div>
+                <h3 id="display-name" style="margin: 0; color: #2c3e50;">Rahul Sharma</h3>
+                <p style="color: #7f8c8d; margin: 5px 0 15px 0;">Sharca Member</p>
+                <button class="btn-primary" style="background: #f1f2f6; color: #2c3e50; box-shadow: none;">Upload Photo</button>
+            </div>
+
+            <div class="content-card" style="flex: 2; min-width: 300px;">
+                
+                <div id="profile-success" class="hidden" style="background: #d4edda; color: #155724; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold;">
+                    Profile successfully updated!
+                </div>
+
+                <form onsubmit="saveProfile(event)">
+                    <h3 style="color: #3498db; margin-top: 0; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;">Personal Information</h3>
+                    
+                    <label style="font-weight: 500; color: #7f8c8d;">Full Name</label>
+                    <input type="text" id="profile-name" class="basic-input" placeholder="Rahul Sharma" required>
+                    
+                    <label style="font-weight: 500; color: #7f8c8d;">Email Address</label>
+                    <input type="email" id="profile-email" class="basic-input" placeholder="rahul@example.com" required>
+                    
+                    <label style="font-weight: 500; color: #7f8c8d;">Phone Number</label>
+                    <input type="tel" id="profile-phone" class="basic-input" placeholder="+91 98765 43210">
+
+                    <h3 style="color: #3498db; margin-top: 25px; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;">Vehicle Details (For Drivers)</h3>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: 500; color: #7f8c8d;">Car Make & Model</label>
+                            <input type="text" id="profile-car" class="basic-input" placeholder="e.g., Maruti Suzuki Swift">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-weight: 500; color: #7f8c8d;">License Plate</label>
+                            <input type="text" id="profile-plate" class="basic-input" placeholder="GJ-01-XX-1234">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" style="margin-top: 25px;">Save Changes</button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

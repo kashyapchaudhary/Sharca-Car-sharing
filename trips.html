@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharca - My Trips</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* --- CUSTOM POPUP (MODAL) STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-box h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 15px 0;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #f1f2f6;
+            color: #2f3542;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-confirm-delete {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-confirm-save {
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Sharca</h2>
+        <div class="nav-links">
+            <a href="home.html">Search</a>
+            <a href="trips.html" style="font-weight: bold; border-bottom: 2px solid #2ecc71;">My Trips</a>
+            <a href="profile.html">Profile</a>
+            <a href="help.html">Help</a>
+            <a href="index.html" onclick="logoutUser(event)">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 style="color: #2c3e50;">My Trips</h2>
+        
+        <div class="content-card" style="margin-bottom: 25px;">
+            <h3 style="color: #2ecc71; margin-top: 0;">+ Add a Custom Trip</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="manual-origin" placeholder="From (e.g., Ahmedabad)" style="flex: 1; margin: 0;">
+                <input type="text" id="manual-dest" placeholder="To (e.g., Surat)" style="flex: 1; margin: 0;">
+                <input type="date" id="manual-date" style="flex: 1; margin: 0;">
+                <button class="btn-primary" style="width: auto; margin: 0; padding: 10px 20px;" onclick="addManualTrip()">Save Trip</button>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h3 style="color: #3498db; margin-top: 0;">Upcoming Rides</h3>
+            <div id="trips-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Edit Trip Date</h3>
+            <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 5px;">Select a new date for your ride.</p>
+            <input type="date" id="new-date-input" class="modal-input">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModals()">Cancel</button>
+                <button class="btn-confirm-save" onclick="saveNewDate()">Save Date</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: #e74c3c;">Cancel Ride</h3>
+            <p style="color: #7f8c8d;">Are you sure you want to cancel this ride? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModals()">Keep Ride</button>
+                <button class="btn-confirm-delete" onclick="confirmDelete()">Yes, Cancel It</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Track which trip we are interacting with
+        let currentTripId = null;
+        let currentTrips = [];
+
+        document.addEventListener('DOMContentLoaded', renderTrips);
+
+        async function getSavedTrips() {
+            if (!isSupabaseConfigured()) {
+                return [];
+            }
+
+            currentTrips = await fetchRiderTrips();
+            return currentTrips;
+        }
+
+        async function renderTrips() {
+            const container = document.getElementById('trips-container');
+            if (!container) return; 
+
+            const trips = await getSavedTrips();
+            container.innerHTML = ''; 
+
+            if (trips.length === 0) {
+                container.innerHTML = '<p style="color: #7f8c8d; text-align: center; padding: 20px;">You have no upcoming rides scheduled.</p>';
+                return;
+            }
+
+            trips.forEach((trip) => {
+                const tripCard = document.createElement('div');
+                tripCard.style.border = '1px solid #dfe6e9';
+                tripCard.style.borderRadius = '8px';
+                tripCard.style.padding = '20px';
+                tripCard.style.marginBottom = '15px';
+                tripCard.style.display = 'flex';
+                tripCard.style.justifyContent = 'space-between';
+                tripCard.style.alignItems = 'center';
+                tripCard.style.flexWrap = 'wrap';
+                tripCard.style.gap = '15px';
+                tripCard.style.background = '#fafafa'; 
+
+                const actionButtons = trip.status === 'completed'
+                    ? '<span style="padding: 10px 15px; background: #e8f5e9; color: #2e7d32; border-radius: 6px; font-weight: bold;">Completed</span>'
+                    : `
+                        <button onclick="openEditModal(${trip.id})" style="padding: 10px 15px; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Edit Date</button>
+                        <button onclick="openDeleteModal(${trip.id})" style="padding: 10px 15px; background: white; color: #e74c3c; border: 1px solid #e74c3c; border-radius: 6px; cursor: pointer; font-weight: bold;">Cancel Ride</button>
+                    `;
+
+                tripCard.innerHTML = `
+                    <div style="flex: 1; min-width: 200px;">
+                        <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 18px; text-transform: capitalize;">
+                            <span style="color: #3498db;">●</span> ${trip.origin} <br>
+                            <span style="color: #e74c3c;">▼</span> ${trip.destination}
+                        </h4>
+                        <p style="margin: 0; color: #7f8c8d; font-size: 14px;">📅 Date: <strong>${trip.trip_date || 'Not set'}</strong></p>
+                        <p style="margin: 6px 0 0 0; color: #7f8c8d; font-size: 13px;">Status: <strong style="text-transform: capitalize;">${trip.status}</strong></p>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        ${actionButtons}
+                    </div>
+                `;
+                container.appendChild(tripCard);
+            });
+        }
+
+        async function addManualTrip() {
+            const origin = document.getElementById('manual-origin').value;
+            const dest = document.getElementById('manual-dest').value;
+            const date = document.getElementById('manual-date').value;
+
+            if (!origin || !dest) {
+                alert("Please enter both origin and destination.");
+                return;
+            }
+
+            try {
+                await createManualTripRecord({ origin: origin, destination: dest, date: date });
+            } catch (error) {
+                alert(error.message || "Unable to save trip.");
+                return;
+            }
+
+            document.getElementById('manual-origin').value = '';
+            document.getElementById('manual-dest').value = '';
+            document.getElementById('manual-date').value = '';
+            await renderTrips();
+        }
+
+        // --- NEW MODAL LOGIC ---
+
+        function closeModals() {
+            document.getElementById('edit-modal').classList.remove('active');
+            document.getElementById('delete-modal').classList.remove('active');
+            currentTripId = null;
+        }
+
+        // Open Custom Edit Prompt
+        function openEditModal(tripId) {
+            currentTripId = tripId;
+            const trip = currentTrips.find((entry) => entry.id === tripId);
+            document.getElementById('new-date-input').value = trip ? (trip.trip_date || '') : '';
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        // Save Custom Edit Prompt
+        async function saveNewDate() {
+            const newDate = document.getElementById('new-date-input').value;
+            
+            if (newDate && currentTripId !== null) {
+                try {
+                    await updateTripRecord(currentTripId, { trip_date: newDate });
+                    await renderTrips();
+                } catch (error) {
+                    alert(error.message || "Unable to update trip date.");
+                }
+            }
+            closeModals();
+        }
+
+        // Open Custom Delete Confirmation
+        function openDeleteModal(tripId) {
+            currentTripId = tripId;
+            document.getElementById('delete-modal').classList.add('active');
+        }
+
+        // Confirm Custom Delete
+        async function confirmDelete() {
+            if (currentTripId !== null) {
+                const trip = currentTrips.find((entry) => entry.id === currentTripId);
+                if (trip) {
+                    try {
+                        await cancelTripRecord(trip);
+                        await renderTrips();
+                    } catch (error) {
+                        alert(error.message || "Unable to cancel trip.");
+                    }
+                }
+            }
+            closeModals();
+        }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

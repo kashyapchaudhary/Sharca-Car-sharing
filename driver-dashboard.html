@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharca - Driver Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header style="background: linear-gradient(135deg, #1e272e 0%, #2f3640 100%);">
+        <h2>Sharca Driver</h2>
+        <div class="nav-links">
+            <a href="driver-dashboard.html">Dashboard</a>
+            <a href="driver-add-ride.html">Add Ride</a>
+            <a href="driver-earn.html">Wallet</a>
+            <a href="driver-profile.html">Profile</a>
+            <a href="help.html">Help</a>
+            <a href="index.html" onclick="logoutUser(event)">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 style="color: #2c3e50;">Driver Dashboard</h2>
+        
+        <div class="content-card" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="margin: 0; color: #2c3e50;">Current Status: <span id="status-text" style="color: #2ecc71;">Online</span></h3>
+                <p id="status-desc" style="margin: 5px 0 0 0; color: #7f8c8d;">You are visible to riders and receiving requests.</p>
+            </div>
+            <button id="toggle-btn" class="btn-primary" style="width: auto; margin: 0; background: #e74c3c; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);" onclick="toggleStatus()">Go Offline</button>
+        </div>
+
+        <div id="requests-section">
+            <h3 style="color: #7f8c8d; margin-bottom: 15px;">Live Ride Requests</h3>
+
+            <div id="incoming-request" style="display: none; background: #fff3cd; border: 2px solid #ffeeba; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 600px; text-align: center;">
+                <h2 style="color: #856404; margin-top: 0;">🚨 New Ride Request!</h2>
+                <h3 id="request-route" style="margin: 10px 0;">Origin ➔ Destination</h3>
+                <button onclick="acceptLiveRide()" style="padding: 15px 30px; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%;">Accept Ride</button>
+            </div>
+            
+            <div id="driver-requests-container"></div>
+        </div>
+        
+    </div>
+
+    <script>
+        // 1. Online/Offline Toggle Logic
+        let isOnline = true;
+        
+        function toggleStatus() {
+            const statusText = document.getElementById('status-text');
+            const statusDesc = document.getElementById('status-desc');
+            const toggleBtn = document.getElementById('toggle-btn');
+            const requestsSection = document.getElementById('requests-section');
+
+            isOnline = !isOnline;
+
+            if (isOnline) {
+                statusText.innerHTML = '<span style="color: #2ecc71;">Online</span>';
+                statusDesc.innerText = 'You are visible to riders and receiving requests.';
+                toggleBtn.innerText = 'Go Offline';
+                toggleBtn.style.background = '#e74c3c';
+                toggleBtn.style.boxShadow = '0 4px 15px rgba(231, 76, 60, 0.3)';
+                requestsSection.style.display = 'block';
+                loadRequests(); // Refresh list when coming online
+            } else {
+                statusText.innerHTML = '<span style="color: #e74c3c;">Offline</span>';
+                statusDesc.innerText = 'You are offline and will not receive new requests.';
+                toggleBtn.innerText = 'Go Online';
+                toggleBtn.style.background = '#2ecc71';
+                toggleBtn.style.boxShadow = '0 4px 15px rgba(46, 204, 113, 0.3)';
+                requestsSection.style.display = 'none';
+            }
+        }
+
+        // ==========================================
+        // --- NEW: REAL-TIME DRIVER SIDE LOGIC ---
+        // ==========================================
+        
+        let currentDriverRequests = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRequests();
+            lookForNewRides();
+        });
+
+        function acceptLiveRide() {
+            const requestBox = document.getElementById('incoming-request');
+            const bookingId = requestBox.dataset.bookingId;
+            if (bookingId) {
+                acceptRide(bookingId);
+            }
+        }
+
+        // ==========================================
+        // --- OLDER/STATIC TRIPS LOGIC ---
+        // ==========================================
+
+        async function loadRequests() {
+            const container = document.getElementById('driver-requests-container');
+            const trips = isSupabaseConfigured()
+                ? await fetchDriverBookings(['pending', 'accepted'])
+                : [];
+            currentDriverRequests = trips;
+
+            container.innerHTML = '';
+
+            if (trips.length === 0) {
+                container.innerHTML = '<div class="content-card" style="text-align: center; color: #7f8c8d;">No ride requests nearby at the moment. Keep waiting!</div>';
+                return;
+            }
+
+            trips.forEach((trip) => {
+                const card = document.createElement('div');
+                card.className = 'content-card';
+                card.style.marginBottom = '15px';
+                card.id = `request-${trip.id}`;
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <h3 style="margin: 0 0 10px 0; color: #3498db; text-transform: capitalize;">${trip.origin} ➔ ${trip.destination}</h3>
+                            <p style="margin: 5px 0; color: #7f8c8d;"><strong>Requested Date:</strong> ${trip.trip_date || 'Today'}</p>
+                            <p style="margin: 5px 0; color: #7f8c8d;"><strong>Status:</strong> <span style="text-transform: capitalize;">${trip.status}</span></p>
+                        </div>
+                        
+                        <div style="text-align: right; display: flex; flex-direction: column; justify-content: center;">
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-primary" style="width: auto; padding: 8px 20px; margin: 0;" onclick="acceptStaticRide(${trip.id})">${trip.status === 'accepted' ? 'In Progress' : 'Accept'}</button>
+                                <button style="width: auto; padding: 8px 20px; border: 1px solid #e74c3c; background: white; color: #e74c3c; border-radius: 8px; cursor: pointer; font-weight: bold;" onclick="declineRide(${trip.id})">Decline</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function acceptStaticRide(bookingId) {
+            await acceptRide(bookingId);
+            await loadRequests();
+        }
+
+        async function declineRide(bookingId) {
+            try {
+                const trip = currentDriverRequests.find((entry) => entry.id === bookingId);
+                if (trip) {
+                    await cancelTripRecord(trip);
+                }
+                await loadRequests();
+            } catch (error) {
+                alert(error.message || 'Unable to decline ride.');
+            }
+        }
+
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

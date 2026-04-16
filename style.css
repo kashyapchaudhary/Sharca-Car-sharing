@@ -1,0 +1,205 @@
+/* --- Global Styles --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa; 
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- Navigation --- */
+header {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+header h2 {
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-links a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* --- Modern Auth Section (Login/Signup) --- */
+.auth-body {
+    background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-wrapper {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.auth-wrapper h2 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+    font-size: 2em;
+}
+
+.auth-wrapper p.subtitle {
+    color: #7f8c8d;
+    margin-bottom: 25px;
+}
+
+.auth-toggle {
+    display: flex;
+    background: #f1f2f6;
+    border-radius: 30px;
+    padding: 5px;
+    margin-bottom: 25px;
+}
+
+.auth-toggle button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    background: transparent;
+    color: #7f8c8d;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin: 0;
+}
+
+.auth-toggle button.active {
+    background: #3498db;
+    color: white;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+input, .basic-input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    box-sizing: border-box;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+    font-size: 1em;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3498db;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 14px;
+    border-radius: 8px;
+    width: 100%;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+}
+
+.toggle-link {
+    display: inline-block;
+    margin-top: 20px;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.toggle-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+/* --- Map & Search (Home Page) --- */
+.search-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.search-panel input {
+    margin: 0;
+}
+
+#map {
+    height: 450px;
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    z-index: 1;
+}
+
+#booking-confirmation {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
+    margin-bottom: 20px;
+}
+
+/* --- Content Cards (Trips, Profile, Help) --- */
+.content-card {
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}

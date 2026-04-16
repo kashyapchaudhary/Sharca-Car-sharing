@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharca - Home Search</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+</head>
+<body>
+    <header>
+        <h2>Sharca</h2>
+        <div class="nav-links">
+            <a href="home.html">Search</a>
+            <a href="trips.html">My Trips</a>
+            <a href="profile.html">Profile</a>
+            <a href="help.html">Help</a>
+            <a href="index.html" onclick="logoutUser(event)">Logout</a>
+        </div>
+    </header>
+    
+
+    <div class="container">
+        <div class="search-panel">
+            <input type="text" id="origin" placeholder="Departure Location (e.g., Ahmedabad, Gujarat)" required>
+            <input type="text" id="destination" placeholder="Destination (e.g., Surat, Gujarat)" required>
+            <button class="btn-primary" id="search-btn" style="width: auto; padding: 10px 20px; margin-top: 0;" onclick="calculateRoute()">Search Ride</button>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div id="available-rides-container" style="margin-top: 20px;"></div>
+        
+        <div id="booking-confirmation" class="hidden content-card" style="margin-top: 20px;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
