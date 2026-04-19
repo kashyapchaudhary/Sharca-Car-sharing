@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+debug_*.js
+test_*.js
+test_*.py
+extract.py
+script_*.js

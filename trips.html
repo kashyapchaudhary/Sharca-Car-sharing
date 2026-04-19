@@ -4,97 +4,166 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sharca - My Trips</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
     <style>
-        /* --- CUSTOM POPUP (MODAL) STYLES --- */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+        body {
+            font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e272e 0%, #2f3640 100%);
+            color: white;
+            padding: 15px 20px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header h2 { margin: 0; font-weight: 800; letter-spacing: 1px; color: #3498db; }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: background 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-box {
+        .content-card {
             background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        /* Active Ride Tracking Container */
+        .active-ride-card {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 20px;
             padding: 25px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(44, 62, 80, 0.4);
+            display: none; /* Hidden by default, shown by JS */
+            animation: slideDown 0.5s ease forwards;
         }
 
-        .modal-overlay.active .modal-box {
-            transform: translateY(0);
-        }
-
-        .modal-box h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            margin: 15px 0;
-            box-sizing: border-box;
-        }
-
-        .modal-actions {
+        .active-ride-header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .active-ride-header h3 { margin: 0; font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .pulsing-dot {
+            width: 12px; height: 12px; background: #2ecc71; border-radius: 50%;
+            box-shadow: 0 0 10px #2ecc71; animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+
+        #active-map-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            background: #1e272e;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        /* Modern Trip Cards */
+        .trip-card {
+            border: 1px solid #e0e6ed;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 15px;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 15px;
-            margin-top: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        .trip-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
+            background: #3498db;
+        }
+        .trip-card.completed::before { background: #2ecc71; }
+        .trip-card.pending::before { background: #f1c40f; }
+        
+        .trip-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
 
-        .btn-cancel {
-            padding: 10px 20px;
-            background: #f1f2f6;
-            color: #2f3542;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .trip-route { font-size: 20px; font-weight: 800; color: #2c3e50; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;}
+        .trip-info { font-size: 14px; color: #7f8c8d; margin: 5px 0; display: flex; align-items: center; gap: 6px;}
 
-        .btn-confirm-delete {
-            padding: 10px 20px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
+        .btn-action {
+            padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: all 0.3s;
+            font-family: 'Outfit', sans-serif;
         }
+        .btn-edit { background: #f39c12; color: white; border: none; }
+        .btn-edit:hover { background: #e67e22; transform: translateY(-2px); }
+        
+        .btn-cancel { background: transparent; color: #e74c3c; border: 2px solid #e74c3c; }
+        .btn-cancel:hover { background: #e74c3c; color: white; transform: translateY(-2px); }
 
-        .btn-confirm-save {
-            padding: 10px 20px;
-            background: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
+        .badge-completed { background: rgba(46, 204, 113, 0.1); color: #27ae60; padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+        .badge-pending { background: rgba(241, 196, 15, 0.1); color: #f39c12; padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+
+        /* Custom Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
         }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modal-box {
+            background: #fff; padding: 35px; border-radius: 20px; width: 90%; max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center;
+            transform: translateY(-20px) scale(0.95); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0) scale(1); }
+
+        .modal-box h3 { margin-top: 0; color: #2c3e50; font-size: 24px; font-weight: 800; }
+        .modal-input { width: 100%; padding: 15px; border: 1px solid #e0e6ed; border-radius: 12px; font-size: 16px; margin: 20px 0; font-family: 'Outfit', sans-serif; }
+        
+        .modal-actions { display: flex; gap: 15px; }
+        .modal-actions button { flex: 1; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; font-size: 16px; transition: transform 0.2s;}
+        .modal-actions button:hover { transform: translateY(-2px); }
+        .btn-modal-cancel { background: #f1f2f6; color: #2f3542; }
+        .btn-modal-confirm-red { background: #e74c3c; color: white; }
+        .btn-modal-confirm-green { background: #2ecc71; color: white; }
+
+        /* Animation Keyframes */
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -102,7 +171,7 @@
         <h2>Sharca</h2>
         <div class="nav-links">
             <a href="home.html">Search</a>
-            <a href="trips.html" style="font-weight: bold; border-bottom: 2px solid #2ecc71;">My Trips</a>
+            <a href="trips.html" style="background: rgba(255,255,255,0.2);">My Trips</a>
             <a href="profile.html">Profile</a>
             <a href="help.html">Help</a>
             <a href="index.html" onclick="logoutUser(event)">Logout</a>
@@ -110,60 +179,64 @@
     </header>
 
     <div class="container">
-        <h2 style="color: #2c3e50;">My Trips</h2>
         
-        <div class="content-card" style="margin-bottom: 25px;">
-            <h3 style="color: #2ecc71; margin-top: 0;">+ Add a Custom Trip</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="manual-origin" placeholder="From (e.g., Ahmedabad)" style="flex: 1; margin: 0;">
-                <input type="text" id="manual-dest" placeholder="To (e.g., Surat)" style="flex: 1; margin: 0;">
-                <input type="date" id="manual-date" style="flex: 1; margin: 0;">
-                <button class="btn-primary" style="width: auto; margin: 0; padding: 10px 20px;" onclick="addManualTrip()">Save Trip</button>
+        <!-- Active Ride Tracking Container -->
+        <div class="active-ride-card" id="active-ride-section">
+            <div class="active-ride-header">
+                <h3><div class="pulsing-dot"></div> Ride in Progress</h3>
+                <span style="background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;">En Route</span>
             </div>
+            <p id="active-ride-details" style="margin-top: 0; color: #bdc3c7; font-size: 16px; margin-bottom: 20px;">Your driver is navigating to the destination...</p>
+            <div id="active-map-container"></div>
         </div>
 
         <div class="content-card">
-            <h3 style="color: #3498db; margin-top: 0;">Upcoming Rides</h3>
-            <div id="trips-container">
-                </div>
+            <h2 style="margin-top: 0; color: #2c3e50; font-size: 28px; font-weight: 800; border-bottom: 2px solid #f1f2f6; padding-bottom: 15px;">My Trips</h2>
+            <div id="trips-container" style="margin-top: 20px;">
+                <!-- Trips injected here -->
+            </div>
         </div>
     </div>
 
+    <!-- Modals -->
     <div id="edit-modal" class="modal-overlay">
         <div class="modal-box">
             <h3>Edit Trip Date</h3>
-            <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 5px;">Select a new date for your ride.</p>
+            <p style="color: #7f8c8d; font-size: 15px; margin-bottom: 5px;">Select a new date for your ride.</p>
             <input type="date" id="new-date-input" class="modal-input">
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModals()">Cancel</button>
-                <button class="btn-confirm-save" onclick="saveNewDate()">Save Date</button>
+                <button class="btn-modal-cancel" onclick="closeModals()">Cancel</button>
+                <button class="btn-modal-confirm-green" onclick="saveNewDate()">Save Date</button>
             </div>
         </div>
     </div>
 
     <div id="delete-modal" class="modal-overlay">
         <div class="modal-box">
-            <h3 style="color: #e74c3c;">Cancel Ride</h3>
-            <p style="color: #7f8c8d;">Are you sure you want to cancel this ride? This action cannot be undone.</p>
+            <h3 style="color: #e74c3c;">Cancel Ride?</h3>
+            <p style="color: #7f8c8d; font-size: 15px;">Are you sure you want to cancel this ride? This action cannot be undone.</p>
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModals()">Keep Ride</button>
-                <button class="btn-confirm-delete" onclick="confirmDelete()">Yes, Cancel It</button>
+                <button class="btn-modal-cancel" onclick="closeModals()">Keep It</button>
+                <button class="btn-modal-confirm-red" onclick="confirmDelete()">Yes, Cancel</button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js"></script>
     <script>
-        // Track which trip we are interacting with
         let currentTripId = null;
         let currentTrips = [];
 
-        document.addEventListener('DOMContentLoaded', renderTrips);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await renderTrips();
+            // Check for active accepted ride to show the animation
+            checkForActiveRide();
+        });
 
         async function getSavedTrips() {
-            if (!isSupabaseConfigured()) {
-                return [];
-            }
-
+            if (!isSupabaseConfigured()) return [];
             currentTrips = await fetchRiderTrips();
             return currentTrips;
         }
@@ -176,79 +249,67 @@
             container.innerHTML = ''; 
 
             if (trips.length === 0) {
-                container.innerHTML = '<p style="color: #7f8c8d; text-align: center; padding: 20px;">You have no upcoming rides scheduled.</p>';
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #95a5a6; font-size: 18px; font-weight: 600; background: #fdfdfd; border-radius: 16px; border: 2px dashed #e0e6ed;">You have no upcoming rides scheduled. 🚗</div>';
                 return;
             }
 
             trips.forEach((trip) => {
+                const isCompleted = trip.status === 'completed';
+                const isPaid = trip.status === 'paid';
+                const isAccepted = trip.status === 'accepted';
+                const isPending = trip.status === 'pending';
+                
                 const tripCard = document.createElement('div');
-                tripCard.style.border = '1px solid #dfe6e9';
-                tripCard.style.borderRadius = '8px';
-                tripCard.style.padding = '20px';
-                tripCard.style.marginBottom = '15px';
-                tripCard.style.display = 'flex';
-                tripCard.style.justifyContent = 'space-between';
-                tripCard.style.alignItems = 'center';
-                tripCard.style.flexWrap = 'wrap';
-                tripCard.style.gap = '15px';
-                tripCard.style.background = '#fafafa'; 
+                tripCard.className = `trip-card ${isCompleted || isPaid ? 'completed' : isPending ? 'pending' : ''}`;
 
-                const actionButtons = trip.status === 'completed'
-                    ? '<span style="padding: 10px 15px; background: #e8f5e9; color: #2e7d32; border-radius: 6px; font-weight: bold;">Completed</span>'
-                    : `
-                        <button onclick="openEditModal(${trip.id})" style="padding: 10px 15px; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Edit Date</button>
-                        <button onclick="openDeleteModal(${trip.id})" style="padding: 10px 15px; background: white; color: #e74c3c; border: 1px solid #e74c3c; border-radius: 6px; cursor: pointer; font-weight: bold;">Cancel Ride</button>
+                let statusBadge = '';
+                let actionButtons = '';
+
+                if (isPaid) {
+                    statusBadge = '<span class="badge-completed" style="background: #e8f5e9; color: #27ae60;">Paid ✓</span>';
+                } else if (isCompleted) {
+                    statusBadge = '<span class="badge-completed" style="background: #fff3e0; color: #d35400;">Payment Required</span>';
+                    actionButtons = `
+                        <button class="btn-action" style="background: #2ecc71; color: white; border: none;" onclick="window.location.href='user-payment.html?bookingId=${trip.id}'">Pay Now</button>
                     `;
+                } else if (isAccepted) {
+                    statusBadge = '<span style="background: rgba(52, 152, 219, 0.1); color: #3498db; padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 14px;">In Progress 🚗</span>';
+                } else {
+                    statusBadge = '<span class="badge-pending">Pending</span>';
+                    actionButtons = `
+                        <button class="btn-action btn-edit" onclick="openEditModal(${trip.id})">Edit Date</button>
+                        <button class="btn-action btn-cancel" onclick="openDeleteModal(${trip.id})">Cancel</button>
+                    `;
+                }
 
                 tripCard.innerHTML = `
                     <div style="flex: 1; min-width: 200px;">
-                        <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 18px; text-transform: capitalize;">
-                            <span style="color: #3498db;">●</span> ${trip.origin} <br>
-                            <span style="color: #e74c3c;">▼</span> ${trip.destination}
+                        <h4 class="trip-route">
+                            ${trip.origin} ➔ ${trip.destination}
                         </h4>
-                        <p style="margin: 0; color: #7f8c8d; font-size: 14px;">📅 Date: <strong>${trip.trip_date || 'Not set'}</strong></p>
-                        <p style="margin: 6px 0 0 0; color: #7f8c8d; font-size: 13px;">Status: <strong style="text-transform: capitalize;">${trip.status}</strong></p>
+                        <p class="trip-info">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <strong>${trip.trip_date || 'Today'}</strong>
+                        </p>
                     </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        ${actionButtons}
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                        ${statusBadge}
+                        <div style="display: flex; gap: 10px;">
+                            ${actionButtons}
+                        </div>
                     </div>
                 `;
                 container.appendChild(tripCard);
             });
         }
 
-        async function addManualTrip() {
-            const origin = document.getElementById('manual-origin').value;
-            const dest = document.getElementById('manual-dest').value;
-            const date = document.getElementById('manual-date').value;
-
-            if (!origin || !dest) {
-                alert("Please enter both origin and destination.");
-                return;
-            }
-
-            try {
-                await createManualTripRecord({ origin: origin, destination: dest, date: date });
-            } catch (error) {
-                alert(error.message || "Unable to save trip.");
-                return;
-            }
-
-            document.getElementById('manual-origin').value = '';
-            document.getElementById('manual-dest').value = '';
-            document.getElementById('manual-date').value = '';
-            await renderTrips();
-        }
-
-        // --- NEW MODAL LOGIC ---
-
+        // Modals
         function closeModals() {
             document.getElementById('edit-modal').classList.remove('active');
             document.getElementById('delete-modal').classList.remove('active');
             currentTripId = null;
         }
 
-        // Open Custom Edit Prompt
         function openEditModal(tripId) {
             currentTripId = tripId;
             const trip = currentTrips.find((entry) => entry.id === tripId);
@@ -256,10 +317,8 @@
             document.getElementById('edit-modal').classList.add('active');
         }
 
-        // Save Custom Edit Prompt
         async function saveNewDate() {
             const newDate = document.getElementById('new-date-input').value;
-            
             if (newDate && currentTripId !== null) {
                 try {
                     await updateTripRecord(currentTripId, { trip_date: newDate });
@@ -271,13 +330,11 @@
             closeModals();
         }
 
-        // Open Custom Delete Confirmation
         function openDeleteModal(tripId) {
             currentTripId = tripId;
             document.getElementById('delete-modal').classList.add('active');
         }
 
-        // Confirm Custom Delete
         async function confirmDelete() {
             if (currentTripId !== null) {
                 const trip = currentTrips.find((entry) => entry.id === currentTripId);
@@ -292,10 +349,22 @@
             }
             closeModals();
         }
+
+        // Active Ride Logic hook
+        async function checkForActiveRide() {
+            const trips = await getSavedTrips();
+            const activeRide = trips.find(t => t.status === 'accepted');
+            
+            if (activeRide) {
+                document.getElementById('active-ride-section').style.display = 'block';
+                document.getElementById('active-ride-details').innerText = `Your driver is driving from ${activeRide.origin} to ${activeRide.destination}...`;
+                
+                // Call global app.js function to animate the map
+                if(typeof startActiveRideMapAnimation === 'function') {
+                    startActiveRideMapAnimation('active-map-container', activeRide);
+                }
+            }
+        }
     </script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>

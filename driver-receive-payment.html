@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receiving Payment | Sharca</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <style>
+        body {
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            color: white;
+        }
+
+        .receive-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .status-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(52, 152, 219, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .status-icon.waiting {
+            animation: pulseBg 2s infinite;
+        }
+
+        .status-icon.success {
+            background: #2ecc71;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .status-icon svg {
+            width: 50px;
+            height: 50px;
+            stroke: #3498db;
+        }
+
+        .status-icon.success svg {
+            stroke: white;
+        }
+
+        @keyframes pulseBg {
+            0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(52, 152, 219, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        h2 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        p {
+            color: #9ca3af;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .amount-display {
+            font-size: 48px;
+            font-weight: 800;
+            color: #10b981;
+            margin: 20px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .amount-display.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .btn-dashboard {
+            background: #3498db;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .btn-dashboard:hover {
+            background: #2980b9;
+        }
+
+        .btn-simulate {
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #4b5563;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-top: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-simulate:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receive-container">
+        <div class="status-icon waiting" id="status-icon">
+            <svg id="icon-svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        
+        <h2 id="status-title">Waiting for Rider</h2>
+        <p id="status-desc">The ride is completed. Please ask the rider to process the payment on their app.</p>
+
+        <div class="amount-display" id="amount-display">₹0</div>
+
+        <button class="btn-dashboard" id="btn-dashboard" onclick="window.location.href='driver-earn.html'">View Wallet</button>
+
+        <button class="btn-simulate" id="btn-simulate" onclick="simulateUserPayment()">Test: Simulate Rider Payment</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js?v=3"></script>
+    <script src="app.js?v=3"></script>
+    <script>
+        let bookingId = null;
+        let pollInterval = null;
+        let expectedPrice = 0;
+
+        window.onload = async function() {
+            try {
+                const session = await requireUserSession();
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                bookingId = urlParams.get('bookingId');
+                
+                if (!bookingId) {
+                    window.location.href = 'driver-dashboard.html';
+                    return;
+                }
+
+                const { data, error } = await supabaseClient
+                    .from('trip_bookings')
+                    .select('*')
+                    .eq('id', bookingId)
+                    .single();
+
+                if (error || !data) throw new Error("Ride not found");
+
+                expectedPrice = data.price || (data.seats ? data.seats * 50 : 250);
+
+                if (data.status === 'paid') {
+                    showSuccess();
+                } else {
+                    // Poll for payment
+                    pollInterval = setInterval(checkPaymentStatus, 3000);
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert('Session error.');
+            }
+        };
+
+        async function checkPaymentStatus() {
+            const { data } = await supabaseClient
+                .from('trip_bookings')
+                .select('status')
+                .eq('id', bookingId)
+                .single();
+            
+            if (data && data.status === 'paid') {
+                clearInterval(pollInterval);
+                showSuccess();
+            }
+        }
+
+        function showSuccess() {
+            const icon = document.getElementById('status-icon');
+            const svg = document.getElementById('icon-svg');
+            
+            icon.className = 'status-icon success';
+            svg.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+            
+            document.getElementById('status-title').innerText = "Payment Received!";
+            document.getElementById('status-desc').innerText = "The amount has been successfully added to your Sharca Wallet.";
+            
+            const amountDisp = document.getElementById('amount-display');
+            amountDisp.innerText = `+₹${expectedPrice}`;
+            amountDisp.classList.add('show');
+
+            document.getElementById('btn-dashboard').style.display = 'block';
+            document.getElementById('btn-simulate').style.display = 'none';
+
+            // Add to Mock Wallet Balance
+            const currentBalance = parseFloat(localStorage.getItem('sharca_driver_wallet') || '0');
+            localStorage.setItem('sharca_driver_wallet', (currentBalance + expectedPrice).toString());
+        }
+
+        async function simulateUserPayment() {
+            const btn = document.getElementById('btn-simulate');
+            btn.innerText = "Simulating...";
+            btn.disabled = true;
+            
+            await supabaseClient
+                .from('trip_bookings')
+                .update({ status: 'paid', payment_method: 'test_simulation' })
+                .eq('id', bookingId);
+        }
+    </script>
+</body>
+</html>

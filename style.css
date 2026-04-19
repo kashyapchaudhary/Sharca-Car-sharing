@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
 /* --- Global Styles --- */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f8f9fa; 
@@ -196,10 +198,328 @@ input:focus {
     margin-bottom: 20px;
 }
 
-/* --- Content Cards (Trips, Profile, Help) --- */
 .content-card {
     background: white; 
     padding: 30px; 
     border-radius: 12px; 
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* --- Modern Redesign Classes --- */
+.hero-section {
+    position: relative;
+    height: 500px;
+    background: url('hero.png') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    margin-bottom: -60px;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    transform: translateY(-30px);
+}
+
+.hero-content h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.hero-content p {
+    font-size: 1.3rem;
+    margin-bottom: 40px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    opacity: 0.9;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    gap: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.glass-input-group {
+    position: relative;
+    flex: 1;
+}
+
+.glass-input-group input {
+    width: 100%;
+    padding: 16px 16px 16px 50px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin: 0;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.glass-input-group input:focus {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.4);
+    background: #fff;
+}
+
+.glass-input-group svg {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    color: #7f8c8d;
+    z-index: 2;
+}
+
+.btn-glow {
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    color: white;
+    border: none;
+    padding: 16px 35px;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 176, 155, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.btn-glow:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 176, 155, 0.6);
+    background: linear-gradient(135deg, #96c93d, #00b09b);
+}
+
+.modern-map-container {
+    background: white;
+    padding: 10px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#map.modern-map {
+    height: 500px;
+    border-radius: 15px;
+    margin-bottom: 0;
+}
+
+.rides-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.ride-card-modern {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+}
+
+.ride-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 6px; height: 100%;
+    background: linear-gradient(180deg, #00b09b, #96c93d);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.ride-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+.ride-card-modern:hover::before {
+    opacity: 1;
+}
+
+.ride-info h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.5rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ride-info .rating {
+    background: #fff8e1;
+    color: #f5b041;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+
+.ride-info p {
+    margin: 8px 0;
+    color: #7f8c8d;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ride-price {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.ride-price h2 {
+    margin: 0 0 12px 0;
+    font-size: 2.8rem;
+    color: #2c3e50;
+    font-weight: 800;
+}
+
+.ride-price .seats {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e1f5fe;
+    color: #0288d1;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.ride-price .seats.low {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.modern-btn-black {
+    background: #111;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: bold;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modern-btn-black:hover {
+    background: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+.modern-toast {
+    background: rgba(46, 204, 113, 0.1);
+    border: 2px solid #2ecc71;
+    border-radius: 16px;
+    padding: 25px;
+    text-align: center;
+    animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Autocomplete Styles --- */
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 5px;
+    border: 1px solid #e0e6ed;
+    display: none;
+}
+
+.autocomplete-dropdown.active {
+    display: block;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.autocomplete-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f2f6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s ease;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover {
+    background: #eef5fb;
+}
+
+.autocomplete-item-icon {
+    color: #3498db;
+    min-width: 16px;
+    height: 16px;
+}
+
+.autocomplete-item-text {
+    font-size: 14px;
+    color: #2c3e50;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

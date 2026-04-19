@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment | Sharca</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <style>
+        body {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .payment-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .payment-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 800;
+            font-size: 28px;
+        }
+
+        .payment-header p {
+            color: #7f8c8d;
+            margin: 5px 0 0;
+            font-size: 15px;
+        }
+
+        .amount-display {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .amount-display .label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .amount-display .amount {
+            font-size: 42px;
+            font-weight: 800;
+            margin: 5px 0 0;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .method-btn {
+            background: white;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            color: #34495e;
+            text-align: left;
+        }
+
+        .method-btn:hover {
+            border-color: #bdc3c7;
+            transform: translateY(-2px);
+        }
+
+        .method-btn.selected {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .method-icon {
+            width: 40px;
+            height: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .method-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .pay-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .pay-btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .pay-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Success Overlay */
+        .success-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 10;
+        }
+
+        .success-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .checkmark-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #2ecc71;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.4);
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .checkmark-circle svg {
+            color: white;
+            width: 40px;
+            height: 40px;
+            stroke-width: 3;
+        }
+
+        .success-overlay h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .success-overlay p {
+            color: #7f8c8d;
+            margin: 10px 0 0;
+            text-align: center;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="payment-container">
+        <div class="payment-header">
+            <h2>Secure Checkout</h2>
+            <p id="driver-name-label">Paying Driver</p>
+        </div>
+
+        <div class="amount-display">
+            <div class="label">Total Amount</div>
+            <div class="amount" id="total-amount">₹0</div>
+        </div>
+
+        <div class="payment-methods">
+            <button class="method-btn selected" onclick="selectMethod(this, 'upi')">
+                <div class="method-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#2980b9"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span>UPI / Digital Wallet</span>
+            </button>
+            <button class="method-btn" onclick="selectMethod(this, 'card')">
+                <div class="method-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#e67e22"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke-width="2"/></svg>
+                </div>
+                <span>Credit / Debit Card</span>
+            </button>
+            <button class="method-btn" onclick="selectMethod(this, 'cash')">
+                <div class="method-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60"><rect x="2" y="6" width="20" height="12" rx="2" stroke-width="2"/><circle cx="12" cy="12" r="2" stroke-width="2"/></svg>
+                </div>
+                <span>Cash on Completion</span>
+            </button>
+        </div>
+
+        <button class="pay-btn" id="pay-button" onclick="processPayment()">
+            Pay Now
+        </button>
+
+        <!-- Success Overlay -->
+        <div class="success-overlay" id="success-overlay">
+            <div class="checkmark-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3>Payment Successful!</h3>
+            <p>Your payment has been sent to the driver securely. You will be redirected shortly.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js?v=3"></script>
+    <script src="app.js?v=3"></script>
+    <script>
+        let bookingId = null;
+        let selectedMethod = 'upi';
+
+        window.onload = async function() {
+            try {
+                const session = await requireUserSession();
+                
+                // Get booking ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                bookingId = urlParams.get('bookingId');
+                
+                if (!bookingId) {
+                    alert('Invalid booking ID.');
+                    window.location.href = 'home.html';
+                    return;
+                }
+
+                // Fetch ride details
+                const { data, error } = await supabaseClient
+                    .from('trip_bookings')
+                    .select('*')
+                    .eq('id', bookingId)
+                    .single();
+
+                if (error || !data) {
+                    alert('Unable to load ride details.');
+                    window.location.href = 'home.html';
+                    return;
+                }
+
+                document.getElementById('driver-name-label').innerText = `Paying ${data.driver_name || 'Driver'}`;
+                
+                // Default fallback price if not explicitly stored in trip_bookings, but let's assume it's available or fallback to a demo value.
+                const price = data.price || (data.seats ? data.seats * 50 : 250); 
+                document.getElementById('total-amount').innerText = `₹${price}`;
+
+            } catch (err) {
+                console.error(err);
+                window.location.href = 'index.html';
+            }
+        };
+
+        function selectMethod(btn, method) {
+            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedMethod = method;
+        }
+
+        async function processPayment() {
+            const payBtn = document.getElementById('pay-button');
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<div class="spinner"></div> Processing...';
+
+            try {
+                // Update booking status to 'paid'
+                const { error } = await supabaseClient
+                    .from('trip_bookings')
+                    .update({ status: 'paid', payment_method: selectedMethod })
+                    .eq('id', bookingId);
+
+                if (error) throw error;
+
+                // Simulate network delay for effect
+                setTimeout(() => {
+                    document.getElementById('success-overlay').classList.add('active');
+                    setTimeout(() => {
+                        window.location.href = 'profile.html'; // Redirect to user's trips page
+                    }, 3000);
+                }, 1500);
+
+            } catch (err) {
+                alert('Payment failed: ' + err.message);
+                payBtn.disabled = false;
+                payBtn.innerText = 'Pay Now';
+            }
+        }
+    </script>
+</body>
+</html>

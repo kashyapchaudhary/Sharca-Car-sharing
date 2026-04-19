@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sharca - Offer a Ride</title>
-    <link rel="stylesheet" href="style.css">
-    
+    <link rel="stylesheet" href="style.css?v=2">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -13,12 +14,12 @@
 
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7f6;
             margin: 0;
             color: #333;
         }
-        
+
         header {
             background: linear-gradient(135deg, #1e272e 0%, #2f3640 100%);
             color: white;
@@ -26,36 +27,57 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        header h2 { margin: 0; }
-        
+        header h2 {
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #2ecc71;
+        }
+
         .nav-links a {
             color: white;
             text-decoration: none;
             margin-left: 15px;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .container {
-            max-width: 800px;
-            margin: 30px auto;
+            max-width: 900px;
+            margin: 40px auto;
             padding: 0 20px;
         }
 
         .content-card {
             background: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .content-card h2 {
+            margin-top: 0;
+            font-size: 28px;
+            color: #2c3e50;
+            font-weight: 800;
         }
 
         /* Form Grid Layout */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
         }
 
         .form-group {
@@ -64,119 +86,264 @@
         }
 
         .form-group label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #34495e;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
         }
 
-        .form-group input {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-icon svg {
+            position: absolute;
+            left: 15px;
+            color: #7f8c8d;
+            width: 20px;
+            height: 20px;
+            z-index: 2;
+        }
+
+        .input-with-icon input {
+            width: 100%;
+            padding: 16px 16px 16px 45px;
+            border: 1px solid #e0e6ed;
+            border-radius: 12px;
             font-size: 16px;
             background-color: #fdfdfd;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
         }
 
-        .form-group input:focus {
+        .input-with-icon input:focus {
             outline: none;
             border-color: #3498db;
             background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
         }
 
         .btn-publish {
-            background: #2ecc71;
+            background: linear-gradient(135deg, #00b09b, #96c93d);
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
             cursor: pointer;
             width: 100%;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-            transition: background 0.3s;
+            margin-top: 30px;
+            box-shadow: 0 8px 25px rgba(0, 176, 155, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .btn-publish:hover {
-            background: #27ae60;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 176, 155, 0.4);
+        }
+
+        .btn-calc {
+            padding: 0 20px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Outfit', sans-serif;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-calc:hover {
+            background: #1a252f;
         }
 
         /* Published Rides List Styles */
-        .ride-card {
-            border: 1px solid #dfe6e9;
-            border-radius: 8px;
-            padding: 15px;
+        .ride-card-modern {
+            border: 1px solid #e0e6ed;
+            border-radius: 16px;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            background: #fafafa;
+            margin-bottom: 15px;
+            background: #fff;
             flex-wrap: wrap;
             gap: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ride-card-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: #3498db;
+        }
+
+        .ride-card-modern:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
 
         .badge {
             background: #e1f5fe;
             color: #0288d1;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 5px;
         }
 
-        @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
+        .btn-remove {
+            padding: 10px 20px;
+            background: transparent;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .btn-remove:hover {
+            background: #e74c3c;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <header>
-        <h2>Sharca Driver</h2>
+        <h2>Sharca</h2>
         <div class="nav-links">
             <a href="driver-dashboard.html">Dashboard</a>
-            <a href="driver-add-ride.html" style="font-weight: bold; border-bottom: 2px solid #2ecc71;">Add Ride</a>
-            <a href="#">Earnings</a>
+            <a href="driver-add-ride.html" style="background: rgba(255,255,255,0.2);">Add Ride</a>
+            <a href="driver-earn.html">Earnings</a>
             <a href="driver-profile.html">Profile</a>
             <a href="index.html" onclick="logoutUser(event)">Logout</a>
         </div>
     </header>
 
     <div class="container">
-        
+
         <div class="content-card">
-            <h2 style="margin-top: 0; color: #2c3e50;">Offer a New Ride</h2>
-            <p style="color: #7f8c8d; margin-bottom: 20px;">Plan your journey and share your empty seats with passengers.</p>
-            
+            <h2>Offer a New Ride</h2>
+            <p style="color: #7f8c8d; margin-bottom: 30px; font-size: 16px;">Plan your journey and share your empty
+                seats with passengers to save on travel costs.</p>
+
             <form id="offer-ride-form" onsubmit="publishRide(event)">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="ride-origin">Origin</label>
-                        <input type="text" id="ride-origin" placeholder="e.g., Ahmedabad" required>
+                        <label for="ride-origin">Leaving From</label>
+                        <div class="input-with-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <input type="text" id="ride-origin" placeholder="e.g., Ahmedabad" required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="ride-dest">Destination</label>
-                        <input type="text" id="ride-dest" placeholder="e.g., Surat" required>
+                        <label for="ride-dest">Going To</label>
+                        <div class="input-with-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <input type="text" id="ride-dest" placeholder="e.g., Surat" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="ride-date">Date</label>
-                        <input type="date" id="ride-date" required>
+                        <div class="input-with-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <input type="date" id="ride-date" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="ride-time">Time of Departure</label>
-                        <input type="time" id="ride-time" required>
+                        <div class="input-with-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <input type="time" id="ride-time" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="ride-seats">Available Seats</label>
-                        <input type="number" id="ride-seats" min="1" max="6" placeholder="e.g., 3" required>
+                        <div class="input-with-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <input type="number" id="ride-seats" min="1" max="6" placeholder="e.g., 3" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="ride-price">Price per Seat (₹)</label>
                         <div style="display: flex; gap: 10px;">
-                            <input type="number" id="ride-price" min="50" placeholder="e.g., 450" required style="flex: 1;">
-                            <button type="button" id="calc-price-btn" onclick="calculateAutoPrice()" style="padding: 10px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Calculate ₹3/km</button>
+                            <div class="input-with-icon" style="flex: 1;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 3h12"></path>
+                                    <path d="M6 8h12"></path>
+                                    <path d="M6 13h8.5l-1 4"></path>
+                                    <path d="M10.5 13a4 4 0 0 0 0-8"></path>
+                                    <path d="M6 13h12"></path>
+                                    <path d="M6 13l6 8"></path>
+                                </svg>
+                                <input type="number" id="ride-price" min="50" placeholder="e.g., 450" required>
+                            </div>
+                            <button type="button" id="calc-price-btn" class="btn-calc" onclick="calculateAutoPrice()">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4"></path>
+                                    <path d="M12 8h.01"></path>
+                                </svg>
+                                Calc ₹3/km
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -185,9 +352,9 @@
         </div>
 
         <div class="content-card">
-            <h3 style="margin-top: 0; color: #2c3e50;">My Active Routes</h3>
-            <div id="published-rides-container">
-                </div>
+            <h3 style="margin-top: 0; color: #2c3e50; font-size: 24px; font-weight: 800;">My Active Routes</h3>
+            <div id="published-rides-container" style="margin-top: 20px;">
+            </div>
         </div>
 
     </div>
@@ -195,9 +362,15 @@
     <div id="hidden-map" style="display: none; height: 10px;"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', loadPublishedRides);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPublishedRides();
+            if (typeof setupAutocomplete === 'function') {
+                setupAutocomplete('ride-origin');
+                setupAutocomplete('ride-dest');
+            }
+        });
 
-        // --- NEW: AUTO-CALCULATE PRICE EXACTLY LIKE THE USER APP ---
+        // --- AUTO-CALCULATE PRICE EXACTLY LIKE THE USER APP ---
         async function calculateAutoPrice() {
             const origin = document.getElementById('ride-origin').value;
             const dest = document.getElementById('ride-dest').value;
@@ -209,19 +382,21 @@
                 return;
             }
 
-            priceBtn.innerText = "Calculating...";
+            priceBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" class="spin"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg> Calc...`;
+            priceBtn.style.pointerEvents = 'none';
 
             try {
                 // Fetch coordinates for Origin and Destination
                 const originRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(origin)}`);
                 const originData = await originRes.json();
-                
+
                 const destRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(dest)}`);
                 const destData = await destRes.json();
 
                 if (originData.length === 0 || destData.length === 0) {
                     alert("Could not find these locations to calculate distance.");
-                    priceBtn.innerText = "Calculate ₹3/km";
+                    priceBtn.innerHTML = "Calc ₹3/km";
+                    priceBtn.style.pointerEvents = 'auto';
                     return;
                 }
 
@@ -235,41 +410,50 @@
 
                 const tempRouting = L.Routing.control({
                     waypoints: [startLatLng, endLatLng],
-                    createMarker: function() { return null; }, // Hidden markers
+                    createMarker: function () { return null; }, // Hidden markers
                     show: false,
                     addWaypoints: false,
                     routeWhileDragging: false
                 }).addTo(window.dummyMap);
 
                 // When Leaflet finds the route, calculate the math
-                tempRouting.on('routesfound', function(e) {
+                tempRouting.on('routesfound', function (e) {
                     const distanceKm = (e.routes[0].summary.totalDistance / 1000).toFixed(1);
-                    
+
                     // SAME MATH AS APP.JS
-                    const baseFare = 50; 
-                    const perKmRate = 3; 
+                    const baseFare = 50;
+                    const perKmRate = 3;
                     const estimatedPrice = Math.round(baseFare + (distanceKm * perKmRate));
 
                     priceInput.value = estimatedPrice;
-                    priceBtn.innerText = `Done (${distanceKm} km)`;
-                    
+                    priceBtn.innerHTML = `Done (₹{distanceKm}km)`;
+                    priceBtn.style.pointerEvents = 'auto';
+                    priceBtn.style.background = '#2ecc71';
+
                     window.dummyMap.removeControl(tempRouting);
                 });
 
-                tempRouting.on('routingerror', function() {
+                tempRouting.on('routingerror', function () {
                     alert("Could not calculate driving route.");
-                    priceBtn.innerText = "Calculate ₹3/km";
+                    priceBtn.innerHTML = "Calc ₹3/km";
+                    priceBtn.style.pointerEvents = 'auto';
                     window.dummyMap.removeControl(tempRouting);
                 });
 
             } catch (error) {
                 alert("Error calculating price. Please enter manually.");
-                priceBtn.innerText = "Calculate ₹3/km";
+                priceBtn.innerHTML = "Calc ₹3/km";
+                priceBtn.style.pointerEvents = 'auto';
             }
         }
 
         async function publishRide(event) {
-            event.preventDefault(); 
+            event.preventDefault();
+
+            const btn = document.querySelector('.btn-publish');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = 'Publishing...';
+            btn.style.opacity = '0.8';
 
             const newRide = {
                 origin: document.getElementById('ride-origin').value,
@@ -284,10 +468,15 @@
             try {
                 await createRideOfferRecord(newRide);
                 document.getElementById('offer-ride-form').reset();
-                document.getElementById('calc-price-btn').innerText = "Calculate ₹3/km";
+                document.getElementById('calc-price-btn').innerHTML = "Calc ₹3/km";
+                document.getElementById('calc-price-btn').style.background = '#2c3e50';
                 await loadPublishedRides();
-                alert("Ride published successfully! Riders can now see it in search.");
+                btn.innerHTML = originalHTML;
+                btn.style.opacity = '1';
+                alert("Route published successfully!");
             } catch (error) {
+                btn.innerHTML = originalHTML;
+                btn.style.opacity = '1';
                 alert(error.message || "Unable to publish ride.");
             }
         }
@@ -299,32 +488,35 @@
                 ? await fetchRideOffers({ driverId: session.id })
                 : [];
 
-            container.innerHTML = ''; 
+            container.innerHTML = '';
 
             if (offeredRides.length === 0) {
-                container.innerHTML = '<p style="color: #7f8c8d; text-align: center;">You have no active routes published.</p>';
+                container.innerHTML = '<div style="text-align: center; padding: 30px; color: #95a5a6; font-size: 16px; background: #fdfdfd; border-radius: 12px; border: 1px dashed #e0e6ed;">You have no active routes published.</div>';
                 return;
             }
 
             offeredRides.forEach((ride) => {
                 const card = document.createElement('div');
-                card.className = 'ride-card';
+                card.className = 'ride-card-modern';
 
                 card.innerHTML = `
                     <div style="flex: 1; min-width: 200px;">
-                        <h4 style="margin: 0 0 5px 0; color: #2c3e50; font-size: 18px; text-transform: capitalize;">
+                        <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 20px; text-transform: capitalize; font-weight: 800;">
                             ${ride.origin} ➔ ${ride.destination}
                         </h4>
-                        <p style="margin: 0; color: #7f8c8d; font-size: 14px;">📅 ${ride.ride_date} | 🕒 ${ride.ride_time}</p>
+                        <p style="margin: 0; color: #7f8c8d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            ${ride.ride_date} at ${ride.ride_time}
+                        </p>
                     </div>
                     
-                    <div style="text-align: center;">
+                    <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <span class="badge">💺 ${ride.seats_left} Seats</span>
-                        <h3 style="margin: 5px 0 0 0; color: #2e7d32;">₹${ride.price}</h3>
+                        <h3 style="margin: 5px 0 0 0; color: #2ecc71; font-size: 24px; font-weight: 800;">₹${ride.price}</h3>
                     </div>
 
-                    <div>
-                        <button onclick="deleteRide(${ride.id})" style="padding: 8px 15px; background: white; color: #e74c3c; border: 1px solid #e74c3c; border-radius: 6px; cursor: pointer; font-weight: bold;">Remove</button>
+                    <div style="display: flex; align-items: center;">
+                        <button class="btn-remove" onclick="deleteRide(${ride.id})">Remove Route</button>
                     </div>
                 `;
                 container.appendChild(card);
@@ -332,7 +524,7 @@
         }
 
         async function deleteRide(rideId) {
-            if (confirm("Are you sure you want to delete this route?")) {
+            if (confirm("Are you sure you want to remove this route? It will not be visible to riders anymore.")) {
                 try {
                     await deleteRideOfferRecord(rideId);
                     await loadPublishedRides();
@@ -341,10 +533,18 @@
                 }
             }
         }
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+            .spin { animation: spin 1s linear infinite; }
+        `;
+        document.head.appendChild(style);
     </script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

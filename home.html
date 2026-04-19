@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sharca - Home Search</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
@@ -23,23 +23,46 @@
         </div>
     </header>
     
+    <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Where to next?</h1>
+            <p>Find the perfect ride, share the journey, and save money.</p>
+            
+            <div class="glass-panel">
+                <div class="glass-input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                    <input type="text" id="origin" placeholder="Leaving from (e.g., Ahmedabad)" required>
+                </div>
+                <div class="glass-input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <input type="text" id="destination" placeholder="Going to (e.g., Surat)" required>
+                </div>
+                <button class="btn-glow" id="search-btn" onclick="calculateRoute()">Search Rides</button>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
-        <div class="search-panel">
-            <input type="text" id="origin" placeholder="Departure Location (e.g., Ahmedabad, Gujarat)" required>
-            <input type="text" id="destination" placeholder="Destination (e.g., Surat, Gujarat)" required>
-            <button class="btn-primary" id="search-btn" style="width: auto; padding: 10px 20px; margin-top: 0;" onclick="calculateRoute()">Search Ride</button>
+        <div class="modern-map-container">
+            <div id="map" class="modern-map"></div>
         </div>
         
-        <div id="map"></div>
+        <div id="available-rides-container" class="rides-grid"></div>
         
-        <div id="available-rides-container" style="margin-top: 20px;"></div>
-        
-        <div id="booking-confirmation" class="hidden content-card" style="margin-top: 20px;"></div>
+        <div id="booking-confirmation" class="hidden modern-toast"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="app.js"></script>
+    <script src="supabase-config.js?v=3"></script>
+    <script src="app.js?v=3"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(typeof setupAutocomplete === 'function') {
+                setupAutocomplete('origin');
+                setupAutocomplete('destination');
+            }
+        });
+    </script>
 </body>
 </html>

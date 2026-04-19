@@ -554,6 +554,11 @@ async function handleAuth(event) {
             return;
         }
 
+        if (!signUpData.session) {
+            setAuthMessage('error', 'Please verify your email address to continue, or disable Email Confirmations in Supabase settings.');
+            return;
+        }
+
         const { error: profileError } = await supabaseClient.from('profiles').upsert({
             id: signUpData.user.id,
             name,
@@ -754,34 +759,39 @@ async function calculateRoute() {
 
 function renderAvailableRides(rides, origin, destination, distance) {
     const container = document.getElementById('available-rides-container');
-    container.innerHTML = `<h3 style="color: #2c3e50; margin-bottom: 15px;">Available Rides (${distance} km)</h3>`;
+    container.innerHTML = `<div style="grid-column: 1 / -1;"><h2 style="color: #2c3e50; margin-bottom: 5px; font-weight: 800; font-size: 2rem;">Available Rides <span style="color:#7f8c8d; font-size: 1.2rem; font-weight: 400;">(${distance} km)</span></h2></div>`;
 
     rides.forEach((ride) => {
         const rideCard = document.createElement('div');
-        rideCard.style.border = '1px solid #dfe6e9';
-        rideCard.style.borderRadius = '12px';
-        rideCard.style.padding = '15px';
-        rideCard.style.marginBottom = '15px';
-        rideCard.style.background = '#fff';
-        rideCard.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+        rideCard.className = 'ride-card-modern';
 
         const rideDataString = encodeURIComponent(JSON.stringify({ ...ride, origin, destination }));
+        const seatsClass = ride.seatsLeft === 1 ? 'seats low' : 'seats';
 
         rideCard.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <h4 style="margin: 0 0 5px 0; font-size: 18px;">${ride.driver} <span style="color: #f39c12; font-size: 14px;">⭐ ${ride.rating}</span></h4>
-                    <p style="margin: 0; color: #7f8c8d; font-size: 14px;">🚗 ${ride.car}</p>
-                    <p style="margin: 5px 0 0 0; font-weight: bold; color: #34495e;">🕒 Departure: ${ride.time}</p>
+            <div class="ride-info">
+                <h4>
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #3498db;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    ${ride.driver}
+                </h4>
+                <div class="rating">⭐ ${ride.rating}</div>
+                <p>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M14 15h.01"></path><path d="M10 15h.01"></path><path d="M19 11v-4a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"></path></svg>
+                    ${ride.car}
+                </p>
+                <p style="font-weight: 600; color: #34495e; margin-top: 15px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #2ecc71;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Departure: ${ride.time}
+                </p>
+            </div>
+            
+            <div class="ride-price">
+                <h2>₹${ride.price}</h2>
+                <div class="${seatsClass}">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    ${ride.seatsLeft} seat${ride.seatsLeft > 1 ? 's' : ''} left
                 </div>
-                
-                <div style="text-align: right;">
-                    <h2 style="margin: 0; color: #2e7d32;">₹${ride.price}</h2>
-                    <p style="margin: 5px 0 10px 0; color: ${ride.seatsLeft === 1 ? '#e74c3c' : '#2980b9'}; font-weight: bold;">
-                        💺 ${ride.seatsLeft} seat${ride.seatsLeft > 1 ? 's' : ''} left
-                    </p>
-                    <button onclick="confirmCarpoolBooking('${rideDataString}')" style="padding: 10px 20px; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;">Book Seat</button>
-                </div>
+                <button onclick="confirmCarpoolBooking('${rideDataString}')" class="modern-btn-black">Book Seat</button>
             </div>
         `;
         container.appendChild(rideCard);
@@ -796,8 +806,10 @@ window.confirmCarpoolBooking = async function(encodedRideData) {
         const booking = await createTripBookingRecord(ride);
         const confirmationDiv = document.getElementById('booking-confirmation');
         confirmationDiv.innerHTML = `
-            <h3 style="color: #f39c12; margin-top: 0;">Requesting Seat...</h3>
-            <p>Sending your request to <strong>${ride.driver}</strong> for the ${ride.time} ride.</p>
+            <div style="text-align: center;">
+                <h3 style="color: #f39c12; margin-top: 0; font-size: 1.8rem; font-weight: 800;">Requesting Seat...</h3>
+                <p style="font-size: 1.1rem; color: #7f8c8d;">Sending your request to <strong style="color: #2c3e50;">${ride.driver}</strong> for the ${ride.time} ride.</p>
+            </div>
         `;
         confirmationDiv.classList.remove('hidden');
         waitForDriver(booking.id);
@@ -826,10 +838,11 @@ function waitForDriver(bookingId) {
             const confirmationDiv = document.getElementById('booking-confirmation');
             if(confirmationDiv) {
                 confirmationDiv.innerHTML = `
-                    <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #2e7d32;">
-                        <h2 style="color: #2e7d32; margin-top: 0;">✅ Ride Confirmed!</h2>
-                        <p style="font-size: 18px; margin-bottom: 5px;">Your driver, <strong>${rideData.driver_name}</strong>, is arriving soon.</p>
-                        <p style="color: #555; margin-top: 0;">Vehicle: <strong>${rideData.car_details}</strong></p>
+                    <div style="text-align: center;">
+                        <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <h2 style="color: #2c3e50; margin-top: 0; font-weight: 800; font-size: 2rem;">Ride Confirmed!</h2>
+                        <p style="font-size: 1.2rem; color: #7f8c8d; margin-bottom: 5px;">Your driver, <strong style="color: #2c3e50;">${rideData.driver_name}</strong>, is arriving soon.</p>
+                        <p style="color: #95a5a6; margin-top: 0;">Vehicle: <strong>${rideData.car_details}</strong></p>
                     </div>
                 `;
             }
@@ -932,8 +945,15 @@ window.lookForNewRides = function() {
         if (requests.length > 0) {
             const rideData = requests[0];
             requestBox.dataset.bookingId = rideData.id;
-            document.getElementById('request-route').innerText = `${rideData.origin} ➔ ${rideData.destination}`;
+            const routeTitle = document.getElementById('request-route');
+            if (routeTitle) {
+                routeTitle.innerText = `${rideData.origin} ➔ ${rideData.destination}`;
+            }
             requestBox.style.display = 'block';
+        } else {
+            if (requestBox.style.background !== 'rgb(232, 245, 233)' && requestBox.style.background !== '#e8f5e9') {
+                requestBox.style.display = 'none';
+            }
         }
     }, 1000);
 }
@@ -983,5 +1003,201 @@ window.completeRide = async function(bookingId) {
         }
     } catch (error) {
         alert(error.message || 'Unable to complete this ride.');
+    }
+}
+
+// ==========================================
+// --- 5. AUTOCOMPLETE LOGIC ---
+// ==========================================
+
+function setupAutocomplete(inputId) {
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+
+    // Create dropdown container
+    const dropdown = document.createElement('div');
+    dropdown.className = 'autocomplete-dropdown';
+    inputEl.parentNode.appendChild(dropdown);
+    
+    // Ensure parent has relative positioning
+    if(window.getComputedStyle(inputEl.parentNode).position === 'static') {
+        inputEl.parentNode.style.position = 'relative';
+    }
+
+    let timeout = null;
+
+    inputEl.addEventListener('input', function() {
+        const query = this.value;
+        dropdown.innerHTML = '';
+        dropdown.classList.remove('active');
+
+        if (timeout) clearTimeout(timeout);
+
+        if (query.length < 3) return;
+
+        timeout = setTimeout(async () => {
+            try {
+                // Fetching from OpenStreetMap
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    dropdown.innerHTML = '';
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-item';
+                        
+                        // Extract a cleaner display name (city, region, country)
+                        const displayNameParts = item.display_name.split(',');
+                        const displayName = displayNameParts.slice(0,3).join(',').trim();
+
+                        div.innerHTML = `
+                            <svg class="autocomplete-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span class="autocomplete-item-text">${displayName}</span>
+                        `;
+                        
+                        div.addEventListener('click', () => {
+                            // On click, set input value to the first part (e.g. City name)
+                            inputEl.value = displayNameParts[0].trim();
+                            dropdown.classList.remove('active');
+                        });
+
+                        dropdown.appendChild(div);
+                    });
+                    dropdown.classList.add('active');
+                }
+            } catch (err) {
+                console.error('Autocomplete error:', err);
+            }
+        }, 400); // 400ms debounce
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== inputEl && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+}
+
+// ==========================================
+// --- 6. ACTIVE RIDE SIMULATOR ---
+// ==========================================
+
+async function startActiveRideMapAnimation(containerId, activeRide) {
+    let container = document.getElementById(containerId);
+    if (!container) return;
+
+    try {
+        // Prevent Leaflet "already initialized" error
+        if (container._leaflet_id) {
+            container.outerHTML = `<div id="${containerId}"></div>`;
+            container = document.getElementById(containerId);
+            
+            // Re-apply original styles since outerHTML replacement loses inline styles if they were set, but it uses CSS class so it's fine.
+            if(!container.classList.contains('active-map-container')) {
+                container.style.width = '100%';
+                container.style.height = '350px';
+                container.style.borderRadius = '12px';
+            }
+        }
+
+        let startLatLng, endLatLng;
+        try {
+            const originRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(activeRide.origin)}`);
+            const originData = await originRes.json();
+            
+            const destRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(activeRide.destination)}`);
+            const destData = await destRes.json();
+
+            if (originData.length === 0 || destData.length === 0) throw new Error("No map data");
+            
+            startLatLng = L.latLng(originData[0].lat, originData[0].lon);
+            endLatLng = L.latLng(destData[0].lat, destData[0].lon);
+        } catch (geocodeError) {
+            // Fallback to random route if API fails or user enters weird addresses
+            startLatLng = L.latLng(21.1702, 72.8311); // Surat
+            endLatLng = L.latLng(23.2507, 72.5350);   // Gandhinagar
+        }
+
+        const map = L.map(containerId).setView(startLatLng, 10);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '©OpenStreetMap, ©CartoDB'
+        }).addTo(map);
+
+        // Custom Car Icon
+        const carIcon = L.divIcon({
+            html: `<div style="font-size: 28px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); transform: scaleX(-1);">🚗</div>`,
+            className: '',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        const routingControl = L.Routing.control({
+            waypoints: [startLatLng, endLatLng],
+            lineOptions: { styles: [{ color: '#3498db', weight: 5, opacity: 0.8 }] },
+            createMarker: function(i, wp, nWps) {
+                if(i === 0) return L.marker(wp.latLng, {icon: carIcon, zIndexOffset: 1000}); // Start marker is the car
+                if(i === nWps - 1) return L.marker(wp.latLng); // End marker
+                return null;
+            },
+            show: false,
+            addWaypoints: false,
+            routeWhileDragging: false,
+            fitSelectedRoutes: true
+        }).addTo(map);
+
+        routingControl.on('routesfound', function(e) {
+            const route = e.routes[0];
+            const coordinates = route.coordinates;
+            
+            // Wait a moment before starting animation
+            setTimeout(() => {
+                let i = 0;
+                // Animate over 8 seconds
+                const totalTime = 8000; 
+                const intervalTime = totalTime / coordinates.length;
+                
+                // Find the car marker layer
+                let carMarker = null;
+                map.eachLayer((layer) => {
+                    if(layer.options && layer.options.icon === carIcon) {
+                        carMarker = layer;
+                    }
+                });
+                
+                if (!carMarker) return;
+
+                const animInterval = setInterval(() => {
+                    if (i >= coordinates.length) {
+                        clearInterval(animInterval);
+                        completeActiveRide(activeRide);
+                        return;
+                    }
+                    
+                    const coord = coordinates[i];
+                    carMarker.setLatLng([coord.lat, coord.lng]);
+                    map.panTo([coord.lat, coord.lng], {animate: true, duration: intervalTime / 1000});
+                    i++;
+                }, intervalTime);
+                
+            }, 1500);
+        });
+
+    } catch (error) {
+        console.error("Map Animation Error:", error);
+        container.innerHTML = `<div style="padding: 20px; color: white;">Error loading active map.</div>`;
+    }
+}
+
+async function completeActiveRide(activeRide) {
+    try {
+        // Mark trip as completed
+        await updateTripRecord(activeRide.id, { status: 'completed' });
+        
+        // Redirect to receive payment page
+        window.location.href = `driver-receive-payment.html?bookingId=${activeRide.id}`;
+    } catch(e) {
+        console.error("Failed to complete ride", e);
     }
 }
