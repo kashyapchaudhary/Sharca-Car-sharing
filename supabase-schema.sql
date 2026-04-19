@@ -10,6 +10,8 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles enable row level security;
+ALTER TABLE public.profiles ADD COLUMN avatar_url TEXT;
+
 
 -- FIX: drop existing policies before creating
 drop policy if exists "Users can read own profile" on public.profiles;
@@ -64,6 +66,7 @@ create table if not exists public.trip_bookings (
     status text not null check (status in ('saved', 'pending', 'accepted', 'completed', 'cancelled')),
     driver_name text default '',
     car_details text default '',
+    payment_method text default '',
     created_at timestamptz not null default now(),
     completed_at timestamptz
 );
