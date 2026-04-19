@@ -10,6 +10,11 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- FIX: drop existing policies before creating
+drop policy if exists "Users can read own profile" on public.profiles;
+drop policy if exists "Users can insert own profile" on public.profiles;
+drop policy if exists "Users can update own profile" on public.profiles;
+
 create policy "Users can read own profile"
 on public.profiles
 for select
@@ -28,6 +33,7 @@ for update
 to authenticated
 using (auth.uid() = id)
 with check (auth.uid() = id);
+
 
 create table if not exists public.ride_offers (
     id bigint generated always as identity primary key,
@@ -64,6 +70,12 @@ create table if not exists public.trip_bookings (
 alter table public.ride_offers enable row level security;
 alter table public.trip_bookings enable row level security;
 
+-- FIX: drop policies before creating
+drop policy if exists "Anyone can read active ride offers" on public.ride_offers;
+drop policy if exists "Drivers can insert own ride offers" on public.ride_offers;
+drop policy if exists "Drivers can update own ride offers" on public.ride_offers;
+drop policy if exists "Drivers can delete own ride offers" on public.ride_offers;
+
 create policy "Anyone can read active ride offers"
 on public.ride_offers
 for select
@@ -88,6 +100,11 @@ on public.ride_offers
 for delete
 to authenticated
 using (auth.uid() = driver_id);
+
+-- FIX: drop policies before creating
+drop policy if exists "Riders and assigned drivers can read bookings" on public.trip_bookings;
+drop policy if exists "Riders can insert own bookings" on public.trip_bookings;
+drop policy if exists "Riders and assigned drivers can update bookings" on public.trip_bookings;
 
 create policy "Riders and assigned drivers can read bookings"
 on public.trip_bookings
