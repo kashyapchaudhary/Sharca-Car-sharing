@@ -5,6 +5,7 @@ create table if not exists public.profiles (
     phone text default '',
     car text default '',
     plate text default '',
+    avatar_url text default '',
     created_at timestamptz not null default now()
 );
 
