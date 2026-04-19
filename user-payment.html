@@ -27,6 +27,7 @@
             border: 1px solid rgba(255,255,255,0.6);
             position: relative;
             overflow: hidden;
+            transition: height 0.3s ease;
         }
 
         .payment-header {
@@ -75,6 +76,7 @@
             grid-template-columns: 1fr;
             gap: 15px;
             margin-bottom: 30px;
+            transition: all 0.3s ease;
         }
 
         .method-btn {
@@ -146,6 +148,72 @@
             box-shadow: none;
         }
 
+        /* PIN Pad UI */
+        .pin-pad-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pin-display {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .pin-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #bdc3c7;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .pin-dot.filled {
+            background: #3498db;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .key {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            padding: 15px 0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .key:active {
+            background: #e9ecef;
+            transform: scale(0.95);
+        }
+
+        .key.action {
+            background: transparent;
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
         /* Success Overlay */
         .success-overlay {
             position: absolute;
@@ -204,7 +272,6 @@
             100% { transform: scale(1); }
         }
 
-        /* Loading Spinner */
         .spinner {
             width: 24px;
             height: 24px;
@@ -223,9 +290,9 @@
 </head>
 <body>
 
-    <div class="payment-container">
+    <div class="payment-container" id="main-container">
         <div class="payment-header">
-            <h2>Secure Checkout</h2>
+            <h2 id="page-title">Secure Checkout</h2>
             <p id="driver-name-label">Paying Driver</p>
         </div>
 
@@ -234,38 +301,73 @@
             <div class="amount" id="total-amount">₹0</div>
         </div>
 
-        <div class="payment-methods">
-            <button class="method-btn selected" onclick="selectMethod(this, 'upi')">
-                <div class="method-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#2980b9"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
-                <span>UPI / Digital Wallet</span>
-            </button>
-            <button class="method-btn" onclick="selectMethod(this, 'card')">
-                <div class="method-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#e67e22"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke-width="2"/></svg>
-                </div>
-                <span>Credit / Debit Card</span>
-            </button>
-            <button class="method-btn" onclick="selectMethod(this, 'cash')">
-                <div class="method-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60"><rect x="2" y="6" width="20" height="12" rx="2" stroke-width="2"/><circle cx="12" cy="12" r="2" stroke-width="2"/></svg>
-                </div>
-                <span>Cash on Completion</span>
+        <!-- Step 1: Select Method -->
+        <div id="step-methods">
+            <div class="payment-methods">
+                <button class="method-btn selected" onclick="selectMethod(this, 'upi')">
+                    <div class="method-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#2980b9"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span>UPI / Digital Wallet</span>
+                </button>
+                <button class="method-btn" onclick="selectMethod(this, 'card')">
+                    <div class="method-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#e67e22"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke-width="2"/></svg>
+                    </div>
+                    <span>Credit / Debit Card</span>
+                </button>
+                <button class="method-btn" onclick="selectMethod(this, 'cash')">
+                    <div class="method-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#27ae60"><rect x="2" y="6" width="20" height="12" rx="2" stroke-width="2"/><circle cx="12" cy="12" r="2" stroke-width="2"/></svg>
+                    </div>
+                    <span>Cash on Completion</span>
+                </button>
+            </div>
+
+            <button class="pay-btn" id="pay-button" onclick="startPayment()">
+                Continue to Pay
             </button>
         </div>
 
-        <button class="pay-btn" id="pay-button" onclick="processPayment()">
-            Pay Now
-        </button>
+        <!-- Step 2: PIN Pad -->
+        <div class="pin-pad-container" id="step-pin">
+            <p style="color: #7f8c8d; margin-bottom: 20px;">Enter your 4-digit security PIN</p>
+            <div class="pin-display" id="pin-display">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+            <div class="keypad">
+                <button class="key" onclick="pressPin('1')">1</button>
+                <button class="key" onclick="pressPin('2')">2</button>
+                <button class="key" onclick="pressPin('3')">3</button>
+                <button class="key" onclick="pressPin('4')">4</button>
+                <button class="key" onclick="pressPin('5')">5</button>
+                <button class="key" onclick="pressPin('6')">6</button>
+                <button class="key" onclick="pressPin('7')">7</button>
+                <button class="key" onclick="pressPin('8')">8</button>
+                <button class="key" onclick="pressPin('9')">9</button>
+                <button class="key action" onclick="cancelPin()">Cancel</button>
+                <button class="key" onclick="pressPin('0')">0</button>
+                <button class="key action" onclick="deletePin()">Delete</button>
+            </div>
+        </div>
 
         <!-- Success Overlay -->
         <div class="success-overlay" id="success-overlay">
             <div class="checkmark-circle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-            <h3>Payment Successful!</h3>
-            <p>Your payment has been sent to the driver securely. You will be redirected shortly.</p>
+            <h3 id="success-title">Payment Successful!</h3>
+            <p id="success-desc">Your payment has been sent to the driver securely. You will be redirected shortly.</p>
+        </div>
+        
+        <!-- Processing Overlay -->
+        <div class="success-overlay" id="processing-overlay" style="background: rgba(255,255,255,0.98);">
+            <div class="spinner" style="border-color: #3498db; border-top-color: transparent; width: 50px; height: 50px; border-width: 4px; margin-bottom: 20px;"></div>
+            <h3 style="color: #3498db;">Processing securely...</h3>
+            <p>Please do not close this window.</p>
         </div>
     </div>
 
@@ -275,12 +377,12 @@
     <script>
         let bookingId = null;
         let selectedMethod = 'upi';
+        let currentPin = '';
 
         window.onload = async function() {
             try {
                 const session = await requireUserSession();
                 
-                // Get booking ID from URL
                 const urlParams = new URLSearchParams(window.location.search);
                 bookingId = urlParams.get('bookingId');
                 
@@ -290,7 +392,6 @@
                     return;
                 }
 
-                // Fetch ride details
                 const { data, error } = await supabaseClient
                     .from('trip_bookings')
                     .select('*')
@@ -304,8 +405,6 @@
                 }
 
                 document.getElementById('driver-name-label').innerText = `Paying ${data.driver_name || 'Driver'}`;
-                
-                // Default fallback price if not explicitly stored in trip_bookings, but let's assume it's available or fallback to a demo value.
                 const price = data.price || (data.seats ? data.seats * 50 : 250); 
                 document.getElementById('total-amount').innerText = `₹${price}`;
 
@@ -321,13 +420,64 @@
             selectedMethod = method;
         }
 
-        async function processPayment() {
-            const payBtn = document.getElementById('pay-button');
-            payBtn.disabled = true;
-            payBtn.innerHTML = '<div class="spinner"></div> Processing...';
+        function startPayment() {
+            if (selectedMethod === 'cash') {
+                processFinalPayment();
+            } else {
+                // Show PIN pad for UPI / Card
+                document.getElementById('step-methods').style.display = 'none';
+                document.getElementById('page-title').innerText = selectedMethod === 'upi' ? 'Enter UPI PIN' : 'Verify CVV/PIN';
+                document.getElementById('step-pin').style.display = 'flex';
+            }
+        }
+
+        function cancelPin() {
+            document.getElementById('step-pin').style.display = 'none';
+            document.getElementById('step-methods').style.display = 'block';
+            document.getElementById('page-title').innerText = 'Secure Checkout';
+            currentPin = '';
+            updatePinDots();
+        }
+
+        function pressPin(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updatePinDots();
+                
+                if (currentPin.length === 4) {
+                    // Auto submit when 4 digits entered
+                    setTimeout(() => {
+                        processFinalPayment();
+                    }, 300);
+                }
+            }
+        }
+
+        function deletePin() {
+            if (currentPin.length > 0) {
+                currentPin = currentPin.slice(0, -1);
+                updatePinDots();
+            }
+        }
+
+        function updatePinDots() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        async function processFinalPayment() {
+            document.getElementById('processing-overlay').classList.add('active');
 
             try {
-                // Update booking status to 'paid'
+                // Simulate secure bank verification delay
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
                 const { error } = await supabaseClient
                     .from('trip_bookings')
                     .update({ status: 'paid', payment_method: selectedMethod })
@@ -335,18 +485,22 @@
 
                 if (error) throw error;
 
-                // Simulate network delay for effect
+                document.getElementById('processing-overlay').classList.remove('active');
+                
+                if (selectedMethod === 'cash') {
+                    document.getElementById('success-title').innerText = 'Cash Confirmed!';
+                    document.getElementById('success-desc').innerText = 'Please hand over the exact amount to the driver.';
+                }
+                
+                document.getElementById('success-overlay').classList.add('active');
                 setTimeout(() => {
-                    document.getElementById('success-overlay').classList.add('active');
-                    setTimeout(() => {
-                        window.location.href = 'profile.html'; // Redirect to user's trips page
-                    }, 3000);
-                }, 1500);
+                    window.location.href = 'profile.html';
+                }, 3000);
 
             } catch (err) {
                 alert('Payment failed: ' + err.message);
-                payBtn.disabled = false;
-                payBtn.innerText = 'Pay Now';
+                document.getElementById('processing-overlay').classList.remove('active');
+                cancelPin();
             }
         }
     </script>

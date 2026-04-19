@@ -409,7 +409,7 @@ async function completeTripRecord(booking) {
 }
 
 async function fetchDriverCompletedTrips() {
-    return fetchDriverBookings(['completed']);
+    return fetchDriverBookings(['completed', 'paid']);
 }
 
 async function getActiveSession() {
