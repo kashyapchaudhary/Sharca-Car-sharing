@@ -10,7 +10,7 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles enable row level security;
-ALTER TABLE public.profiles ADD COLUMN avatar_url TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 
 
 -- FIX: drop existing policies before creating
@@ -73,6 +73,9 @@ create table if not exists public.trip_bookings (
 
 alter table public.ride_offers enable row level security;
 alter table public.trip_bookings enable row level security;
+
+ALTER TABLE public.trip_bookings ADD COLUMN IF NOT EXISTS payment_method TEXT;
+
 
 -- FIX: drop policies before creating
 drop policy if exists "Anyone can read active ride offers" on public.ride_offers;
