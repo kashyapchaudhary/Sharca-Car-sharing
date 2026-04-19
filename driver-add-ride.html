@@ -524,7 +524,7 @@
         }
 
         async function deleteRide(rideId) {
-            if (confirm("Are you sure you want to remove this route? It will not be visible to riders anymore.")) {
+            if (confirm("Are you sure you want to remove this route? It will not be visible to users anymore.")) {
                 try {
                     await deleteRideOfferRecord(rideId);
                     await loadPublishedRides();
