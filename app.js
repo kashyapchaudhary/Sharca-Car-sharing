@@ -53,6 +53,7 @@ function saveSession(account, rememberSession) {
         phone: account.phone || '',
         car: account.car || '',
         plate: account.plate || '',
+        avatar_url: account.avatar_url || '',
         isLoggedIn: true,
         loginAt: new Date().toISOString(),
         persistent: Boolean(rememberSession)
@@ -82,7 +83,7 @@ async function fetchProfileByUserId(userId) {
 
     const { data, error } = await supabaseClient
         .from('profiles')
-        .select('id, name, role, phone, car, plate')
+        .select('id, name, role, phone, car, plate, avatar_url')
         .eq('id', userId)
         .single();
 
@@ -111,7 +112,8 @@ async function hydrateSessionFromSupabase() {
         role: profile.role,
         phone: profile.phone || '',
         car: profile.car || '',
-        plate: profile.plate || ''
+        plate: profile.plate || '',
+        avatar_url: profile.avatar_url || ''
     }, true);
 
     return getStoredSession();
@@ -565,7 +567,8 @@ async function handleAuth(event) {
             role: currentRole,
             phone: '',
             car: '',
-            plate: ''
+            plate: '',
+            avatar_url: ''
         });
 
         if (profileError) {
@@ -580,7 +583,8 @@ async function handleAuth(event) {
             role: currentRole,
             phone: '',
             car: '',
-            plate: ''
+            plate: '',
+            avatar_url: ''
         }, rememberSession);
         
         // Clear out old demo data so it's a fresh account
@@ -1200,4 +1204,69 @@ async function completeActiveRide(activeRide) {
     } catch(e) {
         console.error("Failed to complete ride", e);
     }
+}
+
+// ==========================================
+// --- AVATAR UPLOAD LOGIC ---
+// ==========================================
+async function compressAndUploadAvatar(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (event) {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = async function () {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 256;
+                const MAX_HEIGHT = 256;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress as JPEG
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+                try {
+                    const session = await requireUserSession();
+                    const { error } = await supabaseClient
+                        .from('profiles')
+                        .update({ avatar_url: dataUrl })
+                        .eq('id', session.id);
+
+                    if (error) throw error;
+
+                    // Update local session
+                    const currentProfile = getCachedProfile();
+                    currentProfile.avatar_url = dataUrl;
+                    localStorage.setItem(PROFILE_KEY, JSON.stringify(currentProfile));
+
+                    const currentSession = getStoredSession();
+                    currentSession.avatar_url = dataUrl;
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(currentSession));
+
+                    resolve(dataUrl);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+        };
+        reader.onerror = error => reject(error);
+    });
 }
