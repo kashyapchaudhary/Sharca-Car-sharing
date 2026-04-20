@@ -415,7 +415,49 @@ async function completeTripRecord(booking) {
 }
 
 async function fetchDriverCompletedTrips() {
-    return fetchDriverBookings(['completed', 'paid']);
+    try {
+        const session = await requireUserSession();
+        const profile = getCachedProfile();
+
+        // Query 1: Fetch by driver_id (correct way)
+        const { data: byId, error: err1 } = await supabaseClient
+            .from('trip_bookings')
+            .select('*')
+            .eq('driver_id', session.id)
+            .in('status', ['completed', 'paid'])
+            .order('created_at', { ascending: false });
+
+        if (!err1 && byId && byId.length > 0) {
+            return byId;
+        }
+
+        // Fallback Query 2: Fetch by driver_name for older rides where driver_id was not set
+        if (profile && profile.name) {
+            const { data: byName, error: err2 } = await supabaseClient
+                .from('trip_bookings')
+                .select('*')
+                .eq('driver_name', profile.name)
+                .in('status', ['completed', 'paid'])
+                .order('created_at', { ascending: false });
+
+            if (!err2 && byName && byName.length > 0) {
+                // Silently backfill driver_id for these old rides
+                const idsToFix = byName.filter(r => !r.driver_id).map(r => r.id);
+                if (idsToFix.length > 0) {
+                    await supabaseClient
+                        .from('trip_bookings')
+                        .update({ driver_id: session.id })
+                        .in('id', idsToFix);
+                }
+                return byName;
+            }
+        }
+
+        return [];
+    } catch(e) {
+        console.error('fetchDriverCompletedTrips error:', e);
+        return [];
+    }
 }
 
 async function getActiveSession() {
