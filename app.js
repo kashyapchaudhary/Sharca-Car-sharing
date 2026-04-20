@@ -399,10 +399,12 @@ async function acceptTripRecord(bookingId) {
 }
 
 async function completeTripRecord(booking) {
+    const session = await requireUserSession();
     const { error } = await supabaseClient
         .from('trip_bookings')
         .update({
             status: 'completed',
+            driver_id: session.id,
             completed_at: new Date().toISOString()
         })
         .eq('id', booking.id);
@@ -1208,8 +1210,18 @@ async function startActiveRideMapAnimation(containerId, activeRide) {
 
 async function completeActiveRide(activeRide) {
     try {
-        // Mark trip as completed
-        await updateTripRecord(activeRide.id, { status: 'completed' });
+        // Get current driver session
+        const session = await getActiveSession();
+        const driverId = session ? session.id : null;
+
+        // Mark trip as completed and stamp driver_id as safety net
+        const updateFields = {
+            status: 'completed',
+            completed_at: new Date().toISOString()
+        };
+        if (driverId) updateFields.driver_id = driverId;
+
+        await updateTripRecord(activeRide.id, updateFields);
         
         // Redirect to receive payment page
         window.location.href = `driver-receive-payment.html?bookingId=${activeRide.id}`;
