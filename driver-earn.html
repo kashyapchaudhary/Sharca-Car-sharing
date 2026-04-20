@@ -347,14 +347,15 @@
     <script>
         let earningsChartInstance = null;
 
-        // 1. Fetch Completed Rides directly from Supabase
+        // 1. Fetch Completed Rides using the app's custom session
         async function getCompletedRides() {
             if (!isSupabaseConfigured()) return generateMockHistory();
 
             try {
-                const { data: { user }, error: sessionError } = await supabaseClient.auth.getUser();
-                if (sessionError || !user) {
-                    console.error('No session:', sessionError);
+                // Use the app's own session system (stored in localStorage sharcaSession)
+                const session = await requireUserSession();
+                if (!session || !session.id) {
+                    console.warn('No driver session found.');
                     return generateMockHistory();
                 }
 
@@ -362,14 +363,15 @@
                 const { data: byId, error: idError } = await supabaseClient
                     .from('trip_bookings')
                     .select('*')
-                    .eq('driver_id', user.id)
+                    .eq('driver_id', session.id)
                     .in('status', ['completed', 'paid'])
                     .order('created_at', { ascending: false });
 
-                if (idError) console.warn('By driver_id failed:', idError.message);
-                if (byId && byId.length > 0) return byId;
+                console.log('Fetched by driver_id:', byId, idError);
 
-                // FALLBACK: fetch by driver_name
+                if (!idError && byId && byId.length > 0) return byId;
+
+                // FALLBACK: fetch by driver_name for older rides
                 const profile = JSON.parse(localStorage.getItem('sharcaProfile') || '{}');
                 if (profile && profile.name) {
                     const { data: byName, error: nameError } = await supabaseClient
@@ -379,11 +381,12 @@
                         .in('status', ['completed', 'paid'])
                         .order('created_at', { ascending: false });
 
-                    if (nameError) console.warn('By driver_name failed:', nameError.message);
-                    if (byName && byName.length > 0) return byName;
+                    console.log('Fetched by driver_name:', byName, nameError);
+                    if (!nameError && byName && byName.length > 0) return byName;
                 }
 
-                // No real rides - show mock
+                // No real rides found
+                console.warn('No completed rides found for this driver.');
                 return generateMockHistory();
             } catch (err) {
                 console.error('getCompletedRides error:', err);
