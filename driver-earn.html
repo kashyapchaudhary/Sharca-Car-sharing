@@ -426,6 +426,7 @@
 
             // Prepare chart data
             ridesForChart.forEach(ride => {
+                if (ride.status !== 'paid') return;
                 const dateStr = ride.completed_at ? new Date(ride.completed_at).toLocaleString('en-IN', { month: 'short', day: 'numeric' }) : 'Today';
                 const driverNet = Number(ride.price || 0) * 0.8;
                 
