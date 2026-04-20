@@ -195,7 +195,7 @@ async function fetchRideOffers(filters = {}) {
 
     let query = supabaseClient
         .from('ride_offers')
-        .select('*')
+        .select('*, profiles(phone)')
         .order('created_at', { ascending: false });
 
     if (filters.driverId) {
@@ -749,6 +749,7 @@ async function calculateRoute() {
                     driver: ride.driver_name || "Sharca Driver",
                     rating: "4.9",
                     car: ride.car_details || "Standard Sedan",
+                    phone: ride.profiles?.phone || "Not Provided",
                     seatsLeft: ride.seats_left,
                     date: ride.ride_date,
                     time: ride.ride_time
@@ -800,6 +801,9 @@ function renderAvailableRides(rides, origin, destination, distance) {
                 <p>
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M14 15h.01"></path><path d="M10 15h.01"></path><path d="M19 11v-4a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"></path></svg>
                     ${ride.car}
+                </p>
+                <p style="color: #34495e; margin-top: 5px; display: flex; align-items: center; gap: 8px;">
+                    📞 <strong>${ride.phone}</strong>
                 </p>
                 <p style="font-weight: 600; color: #34495e; margin-top: 15px;">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #2ecc71;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
