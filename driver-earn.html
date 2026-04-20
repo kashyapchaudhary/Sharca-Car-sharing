@@ -347,51 +347,82 @@
     <script>
         let earningsChartInstance = null;
 
-        // 1. Fetch Completed Rides using the app's custom session
+        // 1. Fetch Completed Rides — uses all available session sources
         async function getCompletedRides() {
             if (!isSupabaseConfigured()) return generateMockHistory();
 
+            // Read driver ID directly from localStorage (always reliable)
+            let driverId = null;
+            let driverName = null;
             try {
-                // Use the app's own session system (stored in localStorage sharcaSession)
-                const session = await requireUserSession();
-                if (!session || !session.id) {
-                    console.warn('No driver session found.');
-                    return generateMockHistory();
+                const rawSession = localStorage.getItem('sharcaSession');
+                if (rawSession) {
+                    const stored = JSON.parse(rawSession);
+                    driverId = stored.id || null;
                 }
+                const rawProfile = localStorage.getItem('sharcaProfile');
+                if (rawProfile) {
+                    const stored = JSON.parse(rawProfile);
+                    driverName = stored.name || null;
+                }
+            } catch (e) {
+                console.warn('Could not read localStorage session:', e);
+            }
 
-                // PRIMARY: fetch by driver_id
-                const { data: byId, error: idError } = await supabaseClient
-                    .from('trip_bookings')
-                    .select('*')
-                    .eq('driver_id', session.id)
-                    .in('status', ['completed', 'paid'])
-                    .order('created_at', { ascending: false });
+            // Also try Supabase native session as a secondary source
+            if (!driverId) {
+                try {
+                    const { data } = await supabaseClient.auth.getSession();
+                    if (data && data.session && data.session.user) {
+                        driverId = data.session.user.id;
+                    }
+                } catch (e) {
+                    console.warn('Supabase native session unavailable:', e);
+                }
+            }
 
-                console.log('Fetched by driver_id:', byId, idError);
+            if (!driverId && !driverName) {
+                console.warn('No driver identity found - showing mock data.');
+                return generateMockHistory();
+            }
 
-                if (!idError && byId && byId.length > 0) return byId;
-
-                // FALLBACK: fetch by driver_name for older rides
-                const profile = JSON.parse(localStorage.getItem('sharcaProfile') || '{}');
-                if (profile && profile.name) {
-                    const { data: byName, error: nameError } = await supabaseClient
+            // PRIMARY: Fetch by driver_id (UUID)
+            if (driverId) {
+                try {
+                    const { data, error } = await supabaseClient
                         .from('trip_bookings')
                         .select('*')
-                        .eq('driver_name', profile.name)
+                        .eq('driver_id', driverId)
                         .in('status', ['completed', 'paid'])
                         .order('created_at', { ascending: false });
 
-                    console.log('Fetched by driver_name:', byName, nameError);
-                    if (!nameError && byName && byName.length > 0) return byName;
+                    console.log('[Wallet] Fetched by driver_id (' + driverId + '):', data, error);
+                    if (!error && data && data.length > 0) return data;
+                } catch (e) {
+                    console.warn('driver_id query failed:', e);
                 }
-
-                // No real rides found
-                console.warn('No completed rides found for this driver.');
-                return generateMockHistory();
-            } catch (err) {
-                console.error('getCompletedRides error:', err);
-                return generateMockHistory();
             }
+
+            // FALLBACK: Fetch by driver_name for older rides without driver_id
+            if (driverName) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('trip_bookings')
+                        .select('*')
+                        .eq('driver_name', driverName)
+                        .in('status', ['completed', 'paid'])
+                        .order('created_at', { ascending: false });
+
+                    console.log('[Wallet] Fetched by driver_name (' + driverName + '):', data, error);
+                    if (!error && data && data.length > 0) return data;
+                } catch (e) {
+                    console.warn('driver_name query failed:', e);
+                }
+            }
+
+            // No rides found at all - show mock UI
+            console.warn('[Wallet] No completed rides found - showing demo data.');
+            return generateMockHistory();
         }
 
         function generateMockHistory() {
