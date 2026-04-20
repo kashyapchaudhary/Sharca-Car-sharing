@@ -340,7 +340,11 @@
                 const activeRide = trips[0];
                 document.getElementById('requests-section').style.display = 'none';
                 document.getElementById('active-ride-section').style.display = 'block';
-                document.getElementById('active-ride-details').innerText = `Driving passenger from ${activeRide.origin} to ${activeRide.destination}...`;
+                
+                let detailsText = `Driving passenger from ${activeRide.origin} to ${activeRide.destination}...`;
+                if (activeRide.otp) detailsText += `<br><br>🔐 <strong>Ask User for OTP: ${activeRide.otp}</strong>`;
+                
+                document.getElementById('active-ride-details').innerHTML = detailsText;
                 
                 if(typeof startActiveRideMapAnimation === 'function') {
                     startActiveRideMapAnimation('active-map-container', activeRide);

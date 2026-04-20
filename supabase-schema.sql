@@ -75,7 +75,8 @@ alter table public.ride_offers enable row level security;
 alter table public.trip_bookings enable row level security;
 
 ALTER TABLE public.trip_bookings ADD COLUMN IF NOT EXISTS payment_method TEXT;
-
+ALTER TABLE public.trip_bookings ADD COLUMN IF NOT EXISTS driver_phone TEXT;
+ALTER TABLE public.trip_bookings ADD COLUMN IF NOT EXISTS otp TEXT;
 
 -- FIX: drop policies before creating
 drop policy if exists "Anyone can read active ride offers" on public.ride_offers;

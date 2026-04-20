@@ -361,7 +361,12 @@
             
             if (activeRide) {
                 document.getElementById('active-ride-section').style.display = 'block';
-                document.getElementById('active-ride-details').innerText = `Your driver is driving from ${activeRide.origin} to ${activeRide.destination}...`;
+                
+                let detailsText = `Driver **${activeRide.driver_name || 'Driver'}** is on the way in their ${activeRide.car_details || 'car'}!`;
+                if (activeRide.driver_phone) detailsText += `<br>📞 Driver Phone: ${activeRide.driver_phone}`;
+                if (activeRide.otp) detailsText += `<br>🔐 <strong>Your Verification OTP: ${activeRide.otp}</strong> (Share this with the driver)`;
+                
+                document.getElementById('active-ride-details').innerHTML = detailsText;
                 
                 // Call global app.js function to animate the map
                 if(typeof startActiveRideMapAnimation === 'function') {

@@ -383,13 +383,19 @@ async function fetchDriverBookings(statuses) {
 async function acceptTripRecord(bookingId) {
     const session = await requireUserSession();
     const profile = getCachedProfile();
+
+    // Generate a 6-digit OTP for ride verification
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     const { error } = await supabaseClient
         .from('trip_bookings')
         .update({
             status: 'accepted',
             driver_id: session.id,
             driver_name: profile.name || 'Sharca Driver',
-            car_details: profile.car || ''
+            driver_phone: profile.phone || '',
+            car_details: profile.car || '',
+            otp: otp
         })
         .eq('id', bookingId);
 
@@ -397,6 +403,7 @@ async function acceptTripRecord(bookingId) {
         throw error;
     }
 }
+
 
 async function completeTripRecord(booking) {
     const session = await requireUserSession();
@@ -415,49 +422,7 @@ async function completeTripRecord(booking) {
 }
 
 async function fetchDriverCompletedTrips() {
-    try {
-        const session = await requireUserSession();
-        const profile = getCachedProfile();
-
-        // Query 1: Fetch by driver_id (correct way)
-        const { data: byId, error: err1 } = await supabaseClient
-            .from('trip_bookings')
-            .select('*')
-            .eq('driver_id', session.id)
-            .in('status', ['completed', 'paid'])
-            .order('created_at', { ascending: false });
-
-        if (!err1 && byId && byId.length > 0) {
-            return byId;
-        }
-
-        // Fallback Query 2: Fetch by driver_name for older rides where driver_id was not set
-        if (profile && profile.name) {
-            const { data: byName, error: err2 } = await supabaseClient
-                .from('trip_bookings')
-                .select('*')
-                .eq('driver_name', profile.name)
-                .in('status', ['completed', 'paid'])
-                .order('created_at', { ascending: false });
-
-            if (!err2 && byName && byName.length > 0) {
-                // Silently backfill driver_id for these old rides
-                const idsToFix = byName.filter(r => !r.driver_id).map(r => r.id);
-                if (idsToFix.length > 0) {
-                    await supabaseClient
-                        .from('trip_bookings')
-                        .update({ driver_id: session.id })
-                        .in('id', idsToFix);
-                }
-                return byName;
-            }
-        }
-
-        return [];
-    } catch(e) {
-        console.error('fetchDriverCompletedTrips error:', e);
-        return [];
-    }
+    return fetchDriverBookings(['completed', 'paid']);
 }
 
 async function getActiveSession() {
