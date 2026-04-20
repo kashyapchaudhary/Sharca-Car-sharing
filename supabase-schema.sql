@@ -117,7 +117,12 @@ create policy "Riders and assigned drivers can read bookings"
 on public.trip_bookings
 for select
 to authenticated
-using (auth.uid() = rider_id or auth.uid() = driver_id);
+using (
+    auth.uid() = rider_id
+    or auth.uid() = driver_id
+    or status = 'pending'
+);
+
 
 create policy "Riders can insert own bookings"
 on public.trip_bookings
@@ -129,5 +134,14 @@ create policy "Riders and assigned drivers can update bookings"
 on public.trip_bookings
 for update
 to authenticated
-using (auth.uid() = rider_id or auth.uid() = driver_id)
-with check (auth.uid() = rider_id or auth.uid() = driver_id);
+using (
+    auth.uid() = rider_id
+    or auth.uid() = driver_id
+    or (driver_id is null and status = 'pending')
+)
+with check (
+    auth.uid() = rider_id
+    or auth.uid() = driver_id
+    or (driver_id is null and status in ('pending', 'accepted'))
+);
+

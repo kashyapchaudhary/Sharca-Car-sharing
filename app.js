@@ -381,11 +381,13 @@ async function fetchDriverBookings(statuses) {
 }
 
 async function acceptTripRecord(bookingId) {
+    const session = await requireUserSession();
     const profile = getCachedProfile();
     const { error } = await supabaseClient
         .from('trip_bookings')
         .update({
             status: 'accepted',
+            driver_id: session.id,
             driver_name: profile.name || 'Sharca Driver',
             car_details: profile.car || ''
         })
