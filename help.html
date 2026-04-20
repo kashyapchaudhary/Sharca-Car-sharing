@@ -3,38 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sharca - Help</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Sharca - Help & Support</title>
+    <link rel="stylesheet" href="style.css?v=5">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            margin: 0;
+            color: #2c3e50;
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h2 { margin: 0; font-weight: 800; color: #3498db; }
+
+        .nav-links a {
+            color: #34495e;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .nav-links a:hover { color: #3498db; }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 0 20px;
+            animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .hero-section h1 {
+            font-size: 42px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-section p {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .faq-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,1);
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid #ecf0f1;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+        }
+
+        .accordion-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .accordion-header:hover h3 {
+            color: #3498db;
+        }
+
+        .icon-toggle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3498db;
+            font-weight: bold;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .accordion-item.active .icon-toggle {
+            transform: rotate(135deg);
+            background: #3498db;
+            color: white;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.4s ease;
+            opacity: 0;
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 500px;
+            padding-top: 15px;
+            opacity: 1;
+        }
+
+        .badge-tag {
+            background: rgba(52, 152, 219, 0.1);
+            color: #2980b9;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .contact-box {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 20px 40px rgba(44, 62, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-box::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .contact-box h2 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .contact-box p {
+            margin: 0 0 25px 0;
+            color: #bdc3c7;
+        }
+
+        .btn-contact {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-contact:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(52, 152, 219, 0.4);
+            background: #2980b9;
+        }
+
+    </style>
 </head>
 <body>
+
     <header>
         <h2>Sharca</h2>
         <div class="nav-links">
             <a href="home.html">Search</a>
             <a href="trips.html">My Trips</a>
             <a href="profile.html">Profile</a>
-            <a href="help.html">Help</a>
+            <a href="help.html" style="color:#3498db;">Help</a>
             <a href="index.html" onclick="logoutUser(event)">Logout</a>
         </div>
     </header>
 
     <div class="container">
-        <h2 style="color: #2c3e50;">Help & Support</h2>
-        <div class="content-card">
-            <h3 style="color: #3498db;">Frequently Asked Questions</h3>
-            <p><strong>How do I book a ride?</strong><br>Go to the Search page, enter your departure and destination, and click Search Ride.</p>
-            <p><strong>How do I become a driver?</strong><br>Log out, and select the 'Driver' tab on the login screen to create a driver account.</p>
-            
-            <hr style="border: 0; border-top: 1px solid #dfe6e9; margin: 20px 0;">
-            
-            <h3 style="color: #3498db;">Contact Us</h3>
-            <p>Email: support@sharca.in</p>
-            <p>Phone: +91 1800-SHARCA-APP</p>
+        
+        <div class="hero-section">
+            <h1>How can we help you?</h1>
+            <p>Everything you need to know about booking, travelling, and trusting your driver with Sharca.</p>
         </div>
+
+        <div class="faq-card" style="animation-delay: 0.1s;">
+            <h2 style="margin-top:0; color:#2c3e50; font-weight:800; border-bottom:2px solid #ecf0f1; padding-bottom:15px; margin-bottom:20px;">🚗 Booking a Ride</h2>
+            
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>How do I book a ride?</h3>
+                    <div class="icon-toggle">+</div>
+                </div>
+                <div class="accordion-content">
+                    From the <strong>Search</strong> tab, simply type in your current location (Origin) and where you want to go (Destination). The map will calculate the route and show you available drivers traveling the same way! Click "Book Seat" to send a request to the driver.
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>Can I cancel my request?</h3>
+                    <div class="icon-toggle">+</div>
+                </div>
+                <div class="accordion-content">
+                    Yes! Before the driver accepts your request, you can cancel it freely from your <strong>My Trips</strong> tab. Once a driver accepts, we ask that you communicate with the driver before cancelling to respect their time.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-card" style="animation-delay: 0.2s;">
+            <h2 style="margin-top:0; color:#2c3e50; font-weight:800; border-bottom:2px solid #ecf0f1; padding-bottom:15px; margin-bottom:20px;">💸 Payments</h2>
+            
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>When do I pay for my ride?</h3>
+                    <div class="icon-toggle">+</div>
+                </div>
+                <div class="accordion-content">
+                    You only pay <strong>after</strong> the journey is successfully completed! When the driver marks the ride as complete on their app, a "Pay Now" button will appear in your <strong>My Trips</strong> tab. Clicking it will open our secure checkout page.
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>What payment methods are supported? <span class="badge-tag">UPI & CARD</span></h3>
+                    <div class="icon-toggle">+</div>
+                </div>
+                <div class="accordion-content">
+                    We currently support secure digital payments including UPI (Google Pay, PhonePe, Paytm), Credit Cards, and Debit Cards. You can also select the Cash option if you handed physical money to the driver directly.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-card" style="animation-delay: 0.3s;">
+            <h2 style="margin-top:0; color:#2c3e50; font-weight:800; border-bottom:2px solid #ecf0f1; padding-bottom:15px; margin-bottom:20px;">🛡️ Safety & Trust</h2>
+            
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>Are the drivers verified?</h3>
+                    <div class="icon-toggle">+</div>
+                </div>
+                <div class="accordion-content">
+                    Yes. All drivers are verified through our platform before they can publish a ride. You will see their profile picture, verified checkmark, car model, and license plate number when you book the ride. Always verify the car plate before getting in!
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>What if I left something in the car?</h3>
+                    <div class="icon-toggle">+</div>
+                </div>
+                <div class="accordion-content">
+                    You can find your past trips under the "Completed" section in your <strong>My Trips</strong> tab. We recommend noting down your driver's contact number before the trip ends. If you can't reach them, contact our support team.
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-box" style="animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.4s; opacity: 0;">
+            <h2>Still need help?</h2>
+            <p>Our support team is available 24/7 to assist you with any issues.</p>
+            <button class="btn-contact" onclick="alert('Support chat initialized! An agent will be with you shortly.')">Contact Support</button>
+        </div>
+
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="app.js"></script>
+    <script src="supabase-config.js?v=4"></script>
+    <script src="app.js?v=4"></script>
+    <script>
+        window.onload = async function() {
+            try {
+                await requireUserSession();
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        function toggleAccordion(element) {
+            const item = element.parentElement;
+            
+            // Close all other accordions
+            document.querySelectorAll('.accordion-item').forEach(acc => {
+                if(acc !== item) {
+                    acc.classList.remove('active');
+                }
+            });
+
+            // Toggle current
+            item.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
