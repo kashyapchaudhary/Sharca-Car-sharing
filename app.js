@@ -527,12 +527,15 @@ async function handleAuth(event) {
     const rememberInput = document.getElementById('remember-session');
 
     const name = nameInput ? nameInput.value.trim() : '';
-    const email = emailInput.value.trim().toLowerCase();
+    const authIdentifier = emailInput.value.trim().toLowerCase();
     const password = passwordInput.value;
     const rememberSession = rememberInput ? rememberInput.checked : true;
 
-    if (!validateEmail(email)) {
-        setAuthMessage('error', 'Please enter a valid email address.');
+    const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(authIdentifier);
+    const isPhone = /^[6-9]\d{9}$/.test(authIdentifier);
+
+    if (!isGmail && !isPhone) {
+        setAuthMessage('error', 'Please enter a valid @gmail.com address or a 10-digit Indian phone number.');
         return;
     }
 
@@ -540,6 +543,9 @@ async function handleAuth(event) {
         setAuthMessage('error', 'Password must be at least 6 characters.');
         return;
     }
+
+    const emailForSupabase = isPhone ? `${authIdentifier}@sharca.app` : authIdentifier;
+    const userPhone = isPhone ? authIdentifier : '';
 
     if (isSignup) {
         if (!name) {
@@ -553,7 +559,7 @@ async function handleAuth(event) {
         }
 
         const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
-            email,
+            email: emailForSupabase,
             password
         });
 
@@ -576,7 +582,7 @@ async function handleAuth(event) {
             id: signUpData.user.id,
             name,
             role: currentRole,
-            phone: '',
+            phone: userPhone,
             car: '',
             plate: '',
             avatar_url: ''
@@ -590,9 +596,9 @@ async function handleAuth(event) {
         saveSession({
             id: signUpData.user.id,
             name,
-            email,
+            email: isGmail ? authIdentifier : '',
             role: currentRole,
-            phone: '',
+            phone: userPhone,
             car: '',
             plate: '',
             avatar_url: ''
@@ -613,7 +619,7 @@ async function handleAuth(event) {
         }
 
         const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
-            email,
+            email: emailForSupabase,
             password
         });
 
@@ -636,11 +642,12 @@ async function handleAuth(event) {
         saveSession({
             id: signInData.user.id,
             name: profile.name || signInData.user.email,
-            email: signInData.user.email || email,
+            email: isGmail ? authIdentifier : signInData.user.email,
             role: profile.role,
-            phone: profile.phone || '',
+            phone: profile.phone || userPhone,
             car: profile.car || '',
-            plate: profile.plate || ''
+            plate: profile.plate || '',
+            avatar_url: profile.avatar_url || ''
         }, rememberSession);
         setAuthMessage('success', `Login successful. Redirecting to your ${currentRole} dashboard...`);
         setTimeout(() => navigateByRole(currentRole), 400);
