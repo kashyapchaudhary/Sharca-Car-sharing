@@ -347,17 +347,48 @@
     <script>
         let earningsChartInstance = null;
 
-        // 1. Fetch or Simulate Completed Rides
+        // 1. Fetch Completed Rides directly from Supabase
         async function getCompletedRides() {
-            const completed = isSupabaseConfigured()
-                ? await fetchDriverCompletedTrips()
-                : [];
-            
-            // If they have no rides yet, generate some mock ones to demonstrate the beautiful UI
-            if (completed.length === 0) {
+            if (!isSupabaseConfigured()) return generateMockHistory();
+
+            try {
+                const { data: { user }, error: sessionError } = await supabaseClient.auth.getUser();
+                if (sessionError || !user) {
+                    console.error('No session:', sessionError);
+                    return generateMockHistory();
+                }
+
+                // PRIMARY: fetch by driver_id
+                const { data: byId, error: idError } = await supabaseClient
+                    .from('trip_bookings')
+                    .select('*')
+                    .eq('driver_id', user.id)
+                    .in('status', ['completed', 'paid'])
+                    .order('created_at', { ascending: false });
+
+                if (idError) console.warn('By driver_id failed:', idError.message);
+                if (byId && byId.length > 0) return byId;
+
+                // FALLBACK: fetch by driver_name
+                const profile = JSON.parse(localStorage.getItem('sharcaProfile') || '{}');
+                if (profile && profile.name) {
+                    const { data: byName, error: nameError } = await supabaseClient
+                        .from('trip_bookings')
+                        .select('*')
+                        .eq('driver_name', profile.name)
+                        .in('status', ['completed', 'paid'])
+                        .order('created_at', { ascending: false });
+
+                    if (nameError) console.warn('By driver_name failed:', nameError.message);
+                    if (byName && byName.length > 0) return byName;
+                }
+
+                // No real rides - show mock
+                return generateMockHistory();
+            } catch (err) {
+                console.error('getCompletedRides error:', err);
                 return generateMockHistory();
             }
-            return completed;
         }
 
         function generateMockHistory() {
@@ -380,7 +411,7 @@
         // 2. Calculate Earnings and Render the Page
         async function loadWalletAndHistory() {
             // Set driver name on card
-            const profile = JSON.parse(localStorage.getItem('sharcaProfile'));
+            const profile = JSON.parse(localStorage.getItem('sharcaProfile') || '{}');
             if(profile && profile.name) {
                 document.getElementById('card-name').innerText = profile.name.toUpperCase();
             }
