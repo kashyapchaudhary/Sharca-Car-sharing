@@ -285,45 +285,35 @@
         </div>
     </header>
 
-    <div class="dashboard-container">
-        
-        <!-- Premium Digital Wallet -->
-        <div class="wallet-card">
-            <div class="card-chip"></div>
-            <div>
-                <div class="label">Total Balance</div>
-                <div class="balance" id="total-wallet">₹0.00</div>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <div>
-                    <div class="label" style="font-size: 10px; margin-bottom: 5px;">Card Holder</div>
-                    <div id="card-name" style="font-size: 16px; font-weight: bold; letter-spacing: 1px;">SHARCA DRIVER</div>
-                </div>
-                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="6"></circle><circle cx="16" cy="12" r="6"></circle></svg>
-            </div>
+    <!-- Earnings Summary Bar -->
+    <div style="background: linear-gradient(135deg, #1a2a1a, #2ecc71 200%); padding: 30px 40px; display: flex; gap: 30px; flex-wrap: wrap; align-items: center; justify-content: space-around; border-bottom: 4px solid #27ae60;">
+        <div style="text-align: center; color: white;">
+            <div style="font-size: 13px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase;">Total Earned</div>
+            <div id="total-wallet" style="font-size: 42px; font-weight: 900; margin-top: 5px;">₹0.00</div>
         </div>
+        <div style="text-align: center; color: white;">
+            <div style="font-size: 13px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase;">Completed Rides</div>
+            <div id="total-rides" style="font-size: 42px; font-weight: 900; margin-top: 5px;">0</div>
+        </div>
+        <div style="text-align: center; color: white;">
+            <div style="font-size: 13px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase;">Platform Fee (20%)</div>
+            <div id="total-fee" style="font-size: 42px; font-weight: 900; margin-top: 5px;">₹0.00</div>
+        </div>
+    </div>
 
-        <!-- Cashout Action -->
-        <div class="action-section">
-            <h3 style="margin-top: 0; color: #2c3e50;">Withdraw Funds</h3>
-            <p style="color: #7f8c8d; margin-bottom: 25px;">Transfer your available balance instantly to your linked bank account.</p>
-            <button class="btn-cashout" onclick="cashOut()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-                Transfer to Bank
-            </button>
-        </div>
+    <div class="dashboard-container" style="display: block; max-width: 900px; margin: 40px auto; padding: 0 20px;">
 
         <!-- Animated Chart -->
-        <div class="chart-container">
+        <div class="chart-container" style="margin-bottom: 30px;">
             <h3 style="margin-top: 0; font-size: 22px; color: #2c3e50; font-weight: 800;">Earnings Over Time</h3>
-            <canvas id="earningsChart" height="100"></canvas>
+            <canvas id="earningsChart" height="80"></canvas>
         </div>
 
-        <!-- Modern Transaction History -->
+        <!-- Ride History -->
         <div class="history-container">
-            <h3>Recent Transactions</h3>
+            <h3 style="font-size: 22px; font-weight: 800; color: #2c3e50; margin-top: 0;">🚗 Ride History</h3>
             <div id="ride-history-list">
-                <!-- Transactions will be injected here -->
+                <!-- Ride cards injected here -->
             </div>
         </div>
     </div>
@@ -512,8 +502,13 @@
                 chartData.push(earningsByDay[date]);
             }
 
-            // Animate wallet number
-            animateValue("total-wallet", 0, totalWalletBalance, 1000);
+            // Animate summary bar numbers
+            animateValue("total-wallet", 0, totalWalletBalance, 1200);
+            animateValue("total-fee", 0, rides.reduce((sum, r) => sum + (Number(r.price || 0) * 0.2), 0), 1200);
+
+            // Set ride count
+            const rideCountEl = document.getElementById('total-rides');
+            if (rideCountEl) rideCountEl.innerText = rides.length;
 
             // Render Chart
             renderChart(chartLabels, chartData);
