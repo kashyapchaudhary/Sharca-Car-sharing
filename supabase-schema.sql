@@ -63,7 +63,7 @@ create table if not exists public.trip_bookings (
     trip_date date,
     trip_time text default '',
     price integer not null default 0,
-    status text not null check (status in ('saved', 'pending', 'accepted', 'completed', 'cancelled')),
+    status text not null check (status in ('saved', 'pending', 'accepted', 'completed', 'cancelled', 'paid')),
     driver_name text default '',
     car_details text default '',
     payment_method text default '',
