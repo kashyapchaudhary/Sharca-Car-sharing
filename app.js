@@ -1069,9 +1069,10 @@ function setupAutocomplete(inputId) {
                         const div = document.createElement('div');
                         div.className = 'autocomplete-item';
                         
-                        // Extract a cleaner display name (city, region, country)
+                        // Extract a more detailed "real-world" display name (e.g., Place Name, Area, City)
                         const displayNameParts = item.display_name.split(',');
-                        const displayName = displayNameParts.slice(0,3).join(',').trim();
+                        // Take up to the first 3 parts to be specific but not overly long
+                        const displayName = displayNameParts.slice(0, Math.min(3, displayNameParts.length)).join(', ').trim();
 
                         div.innerHTML = `
                             <svg class="autocomplete-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -1079,8 +1080,8 @@ function setupAutocomplete(inputId) {
                         `;
                         
                         div.addEventListener('click', () => {
-                            // On click, set input value to the first part (e.g. City name)
-                            inputEl.value = displayNameParts[0].trim();
+                            // On click, set input value to the detailed real-life place name
+                            inputEl.value = displayName;
                             dropdown.classList.remove('active');
                         });
 
