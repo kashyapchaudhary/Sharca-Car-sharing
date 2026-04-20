@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sharca Driver - Journey History</title>
+    <link rel="stylesheet" href="style.css?v=6">
+    <style>
+        body {
+            font-family: 'Outfit', 'Segoe UI', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            color: #2c3e50;
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h2 { margin: 0; font-weight: 800; color: #2ecc71; }
+
+        .nav-links a {
+            color: #34495e;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .nav-links a:hover { color: #2ecc71; }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: slideDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .page-header p {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        /* Timeline UI */
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 20px;
+            width: 4px;
+            background: #e0e6ed;
+            border-radius: 4px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 60px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInRight 0.5s ease forwards;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #2ecc71;
+            z-index: 2;
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover .timeline-dot {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 6px rgba(46, 204, 113, 0.3);
+        }
+
+        .timeline-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f1f2f6;
+            padding-bottom: 15px;
+        }
+
+        .timeline-route {
+            font-size: 20px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline-date {
+            font-size: 14px;
+            color: #95a5a6;
+            font-weight: 600;
+        }
+
+        .timeline-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-driver {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .driver-name {
+            font-weight: 700;
+            color: #34495e;
+            font-size: 16px;
+        }
+
+        .driver-car {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .timeline-price {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2ecc71;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .badge.paid { background: #e8f8f5; color: #2ecc71; }
+        .badge.completed { background: #fff3e0; color: #d35400; }
+        .badge.cancelled { background: #fadbd8; color: #e74c3c; }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            font-size: 18px;
+            color: #95a5a6;
+            font-weight: 600;
+        }
+
+        /* Animations */
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Sharca Driver</h2>
+        <div class="nav-links">
+            <a href="driver-dashboard.html">Dashboard</a>
+            <a href="driver-add-ride.html">Add Ride</a>
+            <a href="driver-earn.html">Earnings</a>
+            <a href="driver-history.html" style="color:#2ecc71; background: rgba(46,204,113,0.1);">History</a>
+            <a href="driver-profile.html">Profile</a>
+            <a href="driver-help.html">Help</a>
+            <a href="index.html" onclick="logoutUser(event)">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="page-header">
+            <h1>Driving History</h1>
+            <p>A complete timeline of all your past driving trips.</p>
+        </div>
+
+        <div class="timeline" id="history-container">
+            <!-- Timeline items injected here -->
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js?v=6"></script>
+    <script src="app.js?v=6"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await requireUserSession();
+                await renderHistory();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        async function renderHistory() {
+            const container = document.getElementById('history-container');
+            if (!isSupabaseConfigured()) {
+                container.innerHTML = '<div class="empty-state">No history available in demo mode.</div>';
+                return;
+            }
+
+            // Fetch paid, completed, and cancelled rides for the driver
+            const pastTrips = await fetchDriverBookings(['paid', 'completed', 'cancelled']);
+
+            if (pastTrips.length === 0) {
+                container.innerHTML = '<div class="empty-state">You have no past driving history. Start earning today! 🚗</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            pastTrips.forEach((trip, index) => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.style.animationDelay = `${index * 0.15}s`;
+
+                // Badge styling
+                let badgeClass = '';
+                let badgeText = '';
+                if (trip.status === 'paid') {
+                    badgeClass = 'paid'; badgeText = 'PAID ✓';
+                } else if (trip.status === 'completed') {
+                    badgeClass = 'completed'; badgeText = 'PENDING PAYMENT';
+                } else if (trip.status === 'cancelled') {
+                    badgeClass = 'cancelled'; badgeText = 'CANCELLED';
+                }
+
+                // Dot color
+                const dotColor = trip.status === 'paid' ? '#2ecc71' : trip.status === 'cancelled' ? '#e74c3c' : '#f39c12';
+
+                const dateStr = trip.completed_at ? new Date(trip.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (trip.trip_date || 'Unknown Date');
+
+                // Calculate Net Earnings (Driver gets 80%)
+                const driverNet = trip.price ? (trip.price * 0.8).toFixed(2) : '0.00';
+                
+                // Get Rider info
+                let riderDisplay = '👤 User Passenger'; // Default generic fallback
+
+                item.innerHTML = `
+                    <div class="timeline-dot" style="border-color: ${dotColor}; box-shadow: 0 0 0 4px ${dotColor}33;"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <h4 class="timeline-route">${trip.origin} ➔ ${trip.destination}</h4>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-driver">
+                                <span class="driver-name">${riderDisplay}</span>
+                                <span class="timeline-date">📅 ${dateStr}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="timeline-price">+₹${driverNet}</div>
+                                <div style="font-size:12px; color:#95a5a6;">Net Earned</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>

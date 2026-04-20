@@ -172,6 +172,7 @@
         <div class="nav-links">
             <a href="home.html">Search</a>
             <a href="trips.html" style="background: rgba(255,255,255,0.2);">My Trips</a>
+            <a href="user-history.html">History</a>
             <a href="profile.html">Profile</a>
             <a href="help.html">Help</a>
             <a href="index.html" onclick="logoutUser(event)">Logout</a>
@@ -233,6 +234,7 @@
             await renderTrips();
             // Check for active accepted ride to show the animation
             checkForActiveRide();
+            setInterval(checkForActiveRide, 3000);
         });
 
         async function getSavedTrips() {
@@ -245,7 +247,8 @@
             const container = document.getElementById('trips-container');
             if (!container) return; 
 
-            const trips = await getSavedTrips();
+            const allTrips = await getSavedTrips();
+            const trips = allTrips.filter(t => !['completed', 'paid', 'cancelled'].includes(t.status));
             container.innerHTML = ''; 
 
             if (trips.length === 0) {
@@ -352,6 +355,7 @@
 
         // Active Ride Logic hook
         async function checkForActiveRide() {
+            if (window.isAnimatingMap) return;
             const trips = await getSavedTrips();
             const activeRide = trips.find(t => t.status === 'accepted');
             

@@ -235,6 +235,7 @@
             <a href="driver-dashboard.html" style="background: rgba(255,255,255,0.2);">Dashboard</a>
             <a href="driver-add-ride.html">Add Ride</a>
             <a href="driver-earn.html">Earnings</a>
+            <a href="driver-history.html">History</a>
             <a href="driver-profile.html">Profile</a>
             <a href="driver-help.html">Help</a>
             <a href="index.html" onclick="logoutUser(event)">Logout</a>
@@ -329,9 +330,11 @@
             loadRequests();
             lookForNewRides();
             checkForActiveDriverRide();
+            setInterval(checkForActiveDriverRide, 3000);
         });
 
         async function checkForActiveDriverRide() {
+            if (window.isAnimatingMap) return;
             const trips = await fetchDriverBookings(['accepted']);
             if (trips && trips.length > 0) {
                 const activeRide = trips[0];

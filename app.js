@@ -1089,8 +1089,14 @@ function setupAutocomplete(inputId) {
 // ==========================================
 
 async function startActiveRideMapAnimation(containerId, activeRide) {
+    if (window.isAnimatingMap) return;
+    window.isAnimatingMap = true;
+
     let container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) {
+        window.isAnimatingMap = false;
+        return;
+    }
 
     try {
         // Prevent Leaflet "already initialized" error
@@ -1158,8 +1164,8 @@ async function startActiveRideMapAnimation(containerId, activeRide) {
             // Wait a moment before starting animation
             setTimeout(() => {
                 let i = 0;
-                // Animate over 8 seconds
-                const totalTime = 8000; 
+                // Animate over 15 seconds for realistic tracking
+                const totalTime = 15000; 
                 const intervalTime = totalTime / coordinates.length;
                 
                 // Find the car marker layer
@@ -1170,11 +1176,15 @@ async function startActiveRideMapAnimation(containerId, activeRide) {
                     }
                 });
                 
-                if (!carMarker) return;
+                if (!carMarker) {
+                    window.isAnimatingMap = false;
+                    return;
+                }
 
                 const animInterval = setInterval(() => {
                     if (i >= coordinates.length) {
                         clearInterval(animInterval);
+                        window.isAnimatingMap = false;
                         completeActiveRide(activeRide);
                         return;
                     }
